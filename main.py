@@ -48,7 +48,7 @@ except (FileNotFoundError, json.JSONDecodeError, ConfigurationFileException) as 
     # Something went wrong while loading the config - write an empty one to the file.
     print(f"{str(e)} while loading config.json, writing blank config")
     cfg = {
-        "OWNER_IDS": [331082223677734923]
+        "OWNER_IDS": []
     }
     with open("config.json", "w") as fd:
         json.dump(cfg, fd)
