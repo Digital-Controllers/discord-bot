@@ -85,6 +85,11 @@ async def on_ready():
     print(f"{bot.user} has connected to Discord!")
 
 
+@bot.event
+async def on_member_join(member):
+    await bot.get_channel(1099805424934469652).send(f"Welcome to Digital Controllers, {member.name}!")
+
+
 @bot.command()
 @check_is_owner()
 async def sync_command_tree(ctx):
