@@ -143,10 +143,10 @@ async def ping(interaction: discord.Interaction):
 
 
 @app_commands.command()
-async def metar(interaction: discord.Interaction, airport: str, decode: str=None):
+async def metar(interaction: discord.Interaction, airport: str, decode: bool=False):
     #Split options into 2 different try/except statements to give better debug output if necessary
     
-    if decode == None: #If user does not want the decoded METAR
+    if not decode: #If user does not want the decoded METAR
         try:
             with urlopen(f"https://tgftp.nws.noaa.gov/data/observations/metar/stations/{airport.upper()}.TXT") as x:
                 data = x.read().decode("utf-8")
