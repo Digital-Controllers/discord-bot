@@ -143,13 +143,23 @@ async def ping(interaction: discord.Interaction):
 
 
 @app_commands.command()
-async def metar(interaction: discord.Interaction, airport: str):
-    try:
-        with urlopen(f"https://tgftp.nws.noaa.gov/data/observations/metar/stations/{airport.upper()}.TXT") as x:
-            data = x.read().decode("utf-8")
-        await interaction.response.send_message(f"```{data}```")
-    except:
-        await interaction.response.send_message(f"METAR failed. Try again, maybe?")
+async def metar(interaction: discord.Interaction, airport: str, decode: bool=False):
+    #Split options into 2 different try/except statements to give better debug output if necessary
+    
+    if not decode: #If user does not want the decoded METAR
+        try:
+            with urlopen(f"https://tgftp.nws.noaa.gov/data/observations/metar/stations/{airport.upper()}.TXT") as x:
+                data = x.read().decode("utf-8")
+            await interaction.response.send_message(f"```{data}```")
+        except:
+            await interaction.response.send_message(f"Failed to fetch default METAR.")
+    else: #If user wants decoded METAR
+        try:
+            with urlopen(f"https://beta.aviationweather.gov/cgi-bin/data/metar.php?ids={airport.upper()}&format=decoded") as x:
+                data = x.read().decode("utf-8")
+            await interaction.response.send_message(f"```{data}```")
+        except:
+            await interaction.response.send_message(f"Failed to fetch decoded METAR.")
 
 bot.tree.add_command(ping)
 bot.tree.add_command(metar)
