@@ -70,6 +70,10 @@ HOLDING_POINTS = ["A", "B", "C", "D"]
 AERODROMES = ["UG5X", "UG24", "UGKO", "UGKS", "URKA", "URKN", "URMM", "URSS"]
 RUNWAYS = ["22", "04"]
 DEPARTURES = ["GAM1D", "PAL1D", "ARN1D", "TIB1D", "SOR1D", "RUD1D", "AGI1D", "DIB1D", "TUN1D", "NAL1D"]
+server_player_count_url_dict = {'gaw': 'https://status.hoggitworld.com/f67eecc6-4659-44fd-a4fd-8816c993ad0e',
+                                'pgaw': 'https://status.hoggitworld.com/243bd8b1-3198-4c0b-817a-fadb40decf23',
+                                'lkeu': 'https://levant.eu.limakilo.net/status/data',
+                                'lkus': 'https://levant.na.limakilo.net/status/data'}
 
 
 # usage:
@@ -122,6 +126,7 @@ async def on_member_join(member):
     await bot.get_channel(1099805424934469652).send(f"Welcome to Digital Controllers, {member.name}!", file=discord.File("strip.png"))
     os.remove("strip.png")
 
+
 @bot.command()
 @check_is_owner()
 async def sync_command_tree(ctx):
@@ -151,6 +156,48 @@ async def metar(interaction: discord.Interaction, airport: str):
     except:
         await interaction.response.send_message(f"METAR failed. Try again, maybe?")
 
+
+@app_commands.command()
+async def info(interaction: discord.Interaction, name: str, subcat: str):
+    """
+    Gets player count info for designated servers
+    Args:
+        name | str | Name of server
+        *sub_cats | tuple | List of wanted statistics, blank sends all
+    """
+    name = name.lower()     # Save the code of a .lower() on every instance of name and subcat
+    subcat = subcat.lower()
+
+    try:
+        with urlopen(server_player_count_url_dict[name]) as pipe:
+            response = pipe.read().decode('utf-8')
+    except KeyError:        # If name isn't in server_player_count_url_dict then prevents execution
+        await interaction.response.send_message('Specified DCS server could not be found')
+        return
+    except:     # PEP8 is screaming at me, but I don't know enough about urllib to figure out what error is thrown
+        await interaction.response.send_message('Something went wrong trying to get the data. Try again, maybe?')
+        return
+
+    response_dict = json.loads(response)
+
+    # Deal with different servers fomatting json differently
+    if name in {'gaw', 'pgaw'}:
+        response_strings = {'players': f"{response_dict['players']} players online",
+                            'metar': f"METAR: {response_dict['data']['metar']}"}
+    if name in {'lkeu', 'lkus'}:
+        response_strings = {'players': f"{int(response_dict['players']['current']) - 1} players online",   # Account for lk_admin
+                            'restart': f"Sometime in the (hopefully) not-so-near future"}
+
+    if subcat == 'all':
+        await interaction.response.send_message(' | '.join(response_strings.values()))
+    else:
+        try:
+            await interaction.response.send_message(response_strings[subcat])
+        except KeyError:
+            await interaction.response.send_message("Requested data isn't available for that server")
+
+
 bot.tree.add_command(ping)
 bot.tree.add_command(metar)
+bot.tree.add_command(info)
 bot.run(TOKEN)
