@@ -156,7 +156,7 @@ async def ping(interaction: Interaction):
 
 
 @app_commands.command()
-async def metar(interaction: Interaction, airport: str, decode: bool=False):
+async def metar(interaction: Interaction, airport: str, decode: bool = False):
     # Split options into 2 different try/except statements to give better debug output if necessary
     if not decode:  # If user does not want the decoded METAR
         try:
@@ -175,7 +175,7 @@ async def metar(interaction: Interaction, airport: str, decode: bool=False):
 
 
 @app_commands.command()
-async def info(interaction: Interaction, name: str, details: str):
+async def info(interaction: Interaction, name: str, details: str = 'all'):
     """
     Gets player count info for designated servers
     Args:
