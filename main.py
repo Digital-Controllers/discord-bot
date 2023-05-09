@@ -158,7 +158,7 @@ async def metar(interaction: discord.Interaction, airport: str):
 
 
 @app_commands.command()
-async def info(interaction: discord.Interaction, name: str, subcat: str):
+async def info(interaction: discord.Interaction, name: str, details: str):
     """
     Gets player count info for designated servers
     Args:
@@ -166,7 +166,7 @@ async def info(interaction: discord.Interaction, name: str, subcat: str):
         *sub_cats | tuple | List of wanted statistics, blank sends all
     """
     name = name.lower()     # Save the code of a .lower() on every instance of name and subcat
-    subcat = subcat.lower()
+    details = details.lower()
 
     try:
         with urlopen(server_player_count_url_dict[name]) as pipe:
@@ -182,18 +182,20 @@ async def info(interaction: discord.Interaction, name: str, subcat: str):
 
     # Deal with different servers fomatting json differently
     if name in {'gaw', 'pgaw'}:
-        response_strings = {'players': f"{response_dict['players']} players online",
+        seconds_to_restart = timedelta(seconds=14400 - int(response_dict['data']['uptime']))
+        response_strings = {'players': f"{int(response_dict['players']) - 1} player(s) online",   # Account for slmod?
+                            'restart': f"Restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>",
                             'metar': f"METAR: {response_dict['data']['metar']}"}
     if name in {'lkeu', 'lkus'}:
         seconds_to_restart = timedelta(seconds=int(response_dict['restartPeriod']) - int(response_dict['modelTime']))
-        response_strings = {'players': f"{int(response_dict['players']['current']) - 1} players online",   # Account for lk_admin
+        response_strings = {'players': f"{int(response_dict['players']['current']) - 1} player(s) online",   # Account for lk_admin
                             'restart': f"Restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>"}
 
-    if subcat == 'all':
+    if details == 'all':
         await interaction.response.send_message(' | '.join(response_strings.values()))
     else:
         try:
-            await interaction.response.send_message(response_strings[subcat])
+            await interaction.response.send_message(response_strings[details])
         except KeyError:
             await interaction.response.send_message("Requested data isn't available for that server")
 
