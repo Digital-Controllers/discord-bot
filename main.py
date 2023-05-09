@@ -1,17 +1,14 @@
-import os
-import json
-import sys
-import time
-from datetime import datetime, timedelta, timezone
-from urllib.request import urlopen
-import discord
-import discord.ext
-from discord import app_commands
-from discord.app_commands import Choice
-from discord.ext import tasks, commands
+from datetime import datetime, timedelta
+from discord import app_commands, File, Intents, Interaction
+from discord.ext import commands
 from dotenv import load_dotenv
-from PIL import Image, ImageDraw, ImageFont, ImageColor
+from PIL import Image, ImageDraw, ImageFont
+from urllib.request import urlopen
+import json
+import os
 import random
+import sys
+
 
 sys.path.insert(0, "venv/Lib/site-packages")
 
@@ -40,7 +37,7 @@ try:
 
         # check that the config values exist and are the correct types
         for key, type_ in {"OWNER_IDS": list}.items():
-            if not key in cfg.keys():
+            if key not in cfg.keys():
                 raise ConfigurationFileException
             if not isinstance(cfg[key], type_):
                 raise ConfigurationFileException
@@ -58,12 +55,9 @@ except (FileNotFoundError, json.JSONDecodeError, ConfigurationFileException) as 
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
 
-intents = discord.Intents.all()
-intents.message_content = True
-intents.members = True
-bot = commands.Bot(command_prefix='t?', intents=intents)
+bot = commands.Bot(command_prefix='t?', intents=Intents.all())
 
-print(f"Started at {str(datetime.now(timezone.utc))[:-16]}")
+print(f"Started at {str(datetime.utcnow())[:-16]}")
 
 JETS = ["F16", "F18", "F15", "F35", "F22", "A10", "F14", "MIR2"]
 HOLDING_POINTS = ["A", "B", "C", "D"]
@@ -76,14 +70,21 @@ server_player_count_url_dict = {'gaw': 'https://status.hoggitworld.com/f67eecc6-
                                 'lkus': 'https://levant.na.limakilo.net/status/data'}
 
 
-# usage:
-# @bot.command()
-# @check_is_owner()
-# async def command(...):
-# will automatically say "Failed owner check." on failure
 def check_is_owner():
+    """
+    Checks if author of a message is registered as owner in config.json
+    Usage:
+        @bot.command()
+        @check_is_owner()
+        async def command(...):
+        will automatically say "Failed owner check." on failure
+    Args:
+        None
+    Returns:
+        True <or> AccessDeniedMessage | If owner is or is not in config
+    """
     def predicate(ctx):
-        if not ctx.author.id in cfg["OWNER_IDS"]:
+        if ctx.author.id not in cfg["OWNER_IDS"]:       # May not be coroutine-safe in the future, but it's fine for now I think
             raise AccessDeniedMessage("Failed owner check.")
         return True
 
@@ -91,6 +92,7 @@ def check_is_owner():
 
 
 # =======EVENTS AND LOOPS=======
+
 
 @bot.event
 async def on_ready():
@@ -123,8 +125,11 @@ async def on_member_join(member):
     d.text((646, 150), strip_text["squawk"], font=font, fill=(0, 0, 0), anchor="lm")
     d.text((646, 57), "M/" + strip_text["aircraft"], font=font, fill=(0, 0, 0), anchor="lm")
     strip.save(fp="strip.png")
-    await bot.get_channel(1099805424934469652).send(f"Welcome to Digital Controllers, {member.name}!", file=discord.File("strip.png"))
+    await bot.get_channel(1099805424934469652).send(f"Welcome to Digital Controllers, {member.name}!", file=File("strip.png"))
     os.remove("strip.png")
+
+
+# =======BOT COMMANDS=======
 
 
 @bot.command()
@@ -141,14 +146,17 @@ async def sync_command_tree_error(ctx, error):
         await ctx.reply(error)
 
 
+# =======APP COMMANDS=======
+
+
 @app_commands.command()
-async def ping(interaction: discord.Interaction):
+async def ping(interaction: Interaction):
     latency = str(bot.latency)[:-13]
     await interaction.response.send_message(f"Pong! Ping is {latency}s.")
 
 
 @app_commands.command()
-async def metar(interaction: discord.Interaction, airport: str):
+async def metar(interaction: Interaction, airport: str):
     try:
         with urlopen(f"https://tgftp.nws.noaa.gov/data/observations/metar/stations/{airport.upper()}.TXT") as x:
             data = x.read().decode("utf-8")
@@ -158,14 +166,14 @@ async def metar(interaction: discord.Interaction, airport: str):
 
 
 @app_commands.command()
-async def info(interaction: discord.Interaction, name: str, details: str):
+async def info(interaction: Interaction, name: str, details: str):
     """
     Gets player count info for designated servers
     Args:
         name | str | Name of server
         *sub_cats | tuple | List of wanted statistics, blank sends all
     """
-    name = name.lower()     # Save the code of a .lower() on every instance of name and subcat
+    name = name.lower()     # Save the code of a .lower() on every instance of name and details
     details = details.lower()
 
     try:
@@ -184,9 +192,9 @@ async def info(interaction: discord.Interaction, name: str, details: str):
     if name in {'gaw', 'pgaw'}:
         seconds_to_restart = timedelta(seconds=14400 - int(response_dict['data']['uptime']))
         response_strings = {'players': f"{int(response_dict['players']) - 1} player(s) online",   # Account for slmod?
-                            'restart': f"Restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>",
+                            'restart': f"Restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R> (may be inaccurate)",
                             'metar': f"METAR: {response_dict['data']['metar']}"}
-    if name in {'lkeu', 'lkus'}:
+    elif name in {'lkeu', 'lkus'}:
         seconds_to_restart = timedelta(seconds=int(response_dict['restartPeriod']) - int(response_dict['modelTime']))
         response_strings = {'players': f"{int(response_dict['players']['current']) - 1} player(s) online",   # Account for lk_admin
                             'restart': f"Restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>"}
@@ -198,6 +206,9 @@ async def info(interaction: discord.Interaction, name: str, details: str):
             await interaction.response.send_message(response_strings[details])
         except KeyError:
             await interaction.response.send_message("Requested data isn't available for that server")
+
+
+# =======BOT SETUP AND RUN=======
 
 
 bot.tree.add_command(ping)
