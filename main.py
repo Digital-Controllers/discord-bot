@@ -2,7 +2,7 @@ import os
 import json
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from urllib.request import urlopen
 import discord
 import discord.ext
@@ -185,8 +185,9 @@ async def info(interaction: discord.Interaction, name: str, subcat: str):
         response_strings = {'players': f"{response_dict['players']} players online",
                             'metar': f"METAR: {response_dict['data']['metar']}"}
     if name in {'lkeu', 'lkus'}:
+        seconds_to_restart = timedelta(seconds=int(response_dict['restartPeriod']) - int(response_dict['modelTime']))
         response_strings = {'players': f"{int(response_dict['players']['current']) - 1} players online",   # Account for lk_admin
-                            'restart': f"Sometime in the (hopefully) not-so-near future"}
+                            'restart': f"Restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>"}
 
     if subcat == 'all':
         await interaction.response.send_message(' | '.join(response_strings.values()))
