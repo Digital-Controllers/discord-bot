@@ -9,7 +9,6 @@ import os
 import random
 import sys
 
-
 sys.path.insert(0, "venv/Lib/site-packages")
 
 
@@ -83,8 +82,9 @@ def check_is_owner():
     Returns:
         True <or> AccessDeniedMessage | If owner is or is not in config
     """
+
     def predicate(ctx):
-        if ctx.author.id not in cfg["OWNER_IDS"]:       # May not be coroutine-safe in the future, but it's fine for now I think
+        if ctx.author.id not in cfg["OWNER_IDS"]:  # May not be coroutine-safe in the future, fine for now
             raise AccessDeniedMessage("Failed owner check.")
         return True
 
@@ -125,7 +125,8 @@ async def on_member_join(member):
     d.text((646, 150), strip_text["squawk"], font=font, fill=(0, 0, 0), anchor="lm")
     d.text((646, 57), "M/" + strip_text["aircraft"], font=font, fill=(0, 0, 0), anchor="lm")
     strip.save(fp="strip.png")
-    await bot.get_channel(1099805424934469652).send(f"Welcome to Digital Controllers, {member.name}!", file=File("strip.png"))
+    await bot.get_channel(1099805424934469652).send(f"Welcome to Digital Controllers, "
+                                                    f"{member.name}!", file=File("strip.png"))
     os.remove("strip.png")
 
 
@@ -167,11 +168,15 @@ async def metar(interaction: Interaction, airport: str, decode: bool = False):
             await interaction.response.send_message(f"Failed to fetch default METAR.")
     else:  # If user wants decoded METAR
         try:
-            with urlopen(f"https://beta.aviationweather.gov/cgi-bin/data/metar.php?ids={airport.upper()}&format=decoded") as x:
+            with urlopen(
+                    f"https://beta.aviationweather.gov/cgi-bin/data/metar.php?ids={airport.upper()}&format=decoded") as x:
                 data = x.read().decode("utf-8")
-            await interaction.response.send_message(f"```{data}```")
+                if not data:
+                    raise ValueError("Response was empty.")
+                else:
+                    await interaction.response.send_message(f"```{data}```")
         except:
-            await interaction.response.send_message(f"Failed to fetch decoded METAR.")
+            await interaction.response.send_message("Failed to fetch decoded METAR.")
 
 
 @app_commands.command()
@@ -182,30 +187,32 @@ async def info(interaction: Interaction, name: str, details: str = 'all'):
         name | str | Name of server
         *sub_cats | tuple | List of wanted statistics, blank sends all
     """
-    name = name.lower()     # Save the code of a .lower() on every instance of name and details
+    name = name.lower()  # Save the code of a .lower() on every instance of name and details
     details = details.lower()
 
     try:
         with urlopen(server_player_count_url_dict[name]) as pipe:
             response = pipe.read().decode('utf-8')
-    except KeyError:        # If name isn't in server_player_count_url_dict then prevents execution
+    except KeyError:  # If name isn't in server_player_count_url_dict then prevents execution
         await interaction.response.send_message('Specified DCS server could not be found')
         return
-    except:     # PEP8 is screaming at me, but I don't know enough about urllib to figure out what error is thrown
+    except:  # PEP8 is screaming at me, but I don't know enough about urllib to figure out what error is thrown
         await interaction.response.send_message('Something went wrong trying to get the data. Try again, maybe?')
         return
 
     response_dict = json.loads(response)
 
-    # Deal with different servers fomatting json differently
+    # Deal with different servers formatting json differently
     if name in {'gaw', 'pgaw'}:
         seconds_to_restart = timedelta(seconds=14400 - int(response_dict['data']['uptime']))
-        response_strings = {'players': f"{int(response_dict['players']) - 1} player(s) online",   # Account for slmod?
-                            'restart': f"Restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R> (may be inaccurate)",
+        response_strings = {'players': f"{int(response_dict['players']) - 1} player(s) online",  # Account for slmod?
+                            'restart': f"Restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R> ("
+                                       f"may be inaccurate)",
                             'metar': f"METAR: {response_dict['data']['metar']}"}
     elif name in {'lkeu', 'lkus'}:
         seconds_to_restart = timedelta(seconds=int(response_dict['restartPeriod']) - int(response_dict['modelTime']))
-        response_strings = {'players': f"{int(response_dict['players']['current']) - 1} player(s) online",   # Account for lk_admin
+        response_strings = {'players': f"{int(response_dict['players']['current']) - 1} player(s) online",
+                            # Account for lk_admin
                             'restart': f"Restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>"}
 
     if details == 'all':
