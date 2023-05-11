@@ -180,6 +180,13 @@ async def metar(interaction: Interaction, airport: str, decode: bool = False):
 
 
 @app_commands.command()
+@app_commands.describe(name="DCS server selection")
+@app_commands.choices(name=[
+    app_commands.Choice(name="Hoggit - Georgia At War", value="gaw"),
+    app_commands.Choice(name="Hoggit - Persian Gulf At War", value="pgaw"),
+    app_commands.Choice(name="Lima Kilo - Flashpoint Levant - EU", value="lkeu"),
+    app_commands.Choice(name="Lima Kilo - Flashpoint Levant - NA", value="lkna") 
+])
 async def info(interaction: Interaction, name: str, details: str = 'all'):
     """
     Gets player count info for designated servers
