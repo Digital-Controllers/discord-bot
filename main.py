@@ -180,14 +180,21 @@ async def metar(interaction: Interaction, airport: str, decode: bool = False):
 
 
 @app_commands.command()
-async def info(interaction: Interaction, name: str, details: str = 'all'):
+@app_commands.describe(name="DCS server selection")
+@app_commands.choices(name=[
+    app_commands.Choice(name="Hoggit - Georgia At War", value="gaw"),
+    app_commands.Choice(name="Hoggit - Persian Gulf At War", value="pgaw"),
+    app_commands.Choice(name="Lima Kilo - Flashpoint Levant - EU", value="lkeu"),
+    app_commands.Choice(name="Lima Kilo - Flashpoint Levant - NA", value="lkna") 
+])
+async def info(interaction: Interaction, name: app_commands.Choice[str], details: str = 'all'):
     """
     Gets player count info for designated servers
     Args:
-        name | str | Name of server
+        name | Choice[str] | Name of server
         *sub_cats | tuple | List of wanted statistics, blank sends all
     """
-    name = name.lower()  # Save the code of a .lower() on every instance of name and details
+    name = name.value  # take the actual string value from the input Choice
     details = details.lower()
 
     try:
