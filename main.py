@@ -194,7 +194,7 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
         name | Choice[str] | Name of server
         *sub_cats | tuple | List of wanted statistics, blank sends all
     """
-    name = name.lower()  # Save the code of a .lower() on every instance of name and details
+    name = name.value  # take the actual string value from the input Choice
     details = details.lower()
 
     try:
