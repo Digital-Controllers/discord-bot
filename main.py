@@ -187,7 +187,7 @@ async def metar(interaction: Interaction, airport: str, decode: bool = False):
     app_commands.Choice(name="Lima Kilo - Flashpoint Levant - EU", value="lkeu"),
     app_commands.Choice(name="Lima Kilo - Flashpoint Levant - NA", value="lkna") 
 ])
-async def info(interaction: Interaction, name: str, details: str = 'all'):
+async def info(interaction: Interaction, name: app_commands.Choice[str], details: str = 'all'):
     """
     Gets player count info for designated servers
     Args:
