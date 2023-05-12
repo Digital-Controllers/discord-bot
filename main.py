@@ -235,6 +235,7 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
             await interaction.response.send_message("Requested data isn't available for that server")
 
 
+# Creates and updates an embed every 60 seconds.
 @tasks.loop(seconds=60)
 async def update_server_embed():
     embed = discord.Embed(title="DCS Server Information", description="Updated in real-time.",
@@ -243,7 +244,7 @@ async def update_server_embed():
     embed.set_thumbnail(
         url="https://raw.githubusercontent.com/Digital-Controllers/website/main/docs/assets/logo.png")
     embed.set_footer(
-        text="Want to add a new server to the embed? Propose it in #development or add a github issue.")
+        text="Want to add a new server to the embed? Propose it in #development or add a GitHub issue.")
     servers = ["gaw", "pgaw", "lkeu", "lkus"]
 
     for server in servers:
@@ -255,7 +256,6 @@ async def update_server_embed():
         except:  # in future, figure out exact error thrown by urllib
             raise urllib.error.URLError("Error while fetching data.")
         response_dict = json.loads(response)
-        response_strings = ""
 
         match server:
             # Player counts account for server moderators.
