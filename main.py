@@ -1,16 +1,15 @@
-import time
-import urllib.error
 from datetime import datetime, timedelta
-import discord
-from discord import app_commands, File, Intents, Interaction
+from discord import app_commands, Embed, File, Intents, Interaction
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from PIL import Image, ImageDraw, ImageFont
 from urllib.request import urlopen
+from urllib.error import URLError
 import json
 import os
 import random
 import sys
+
 
 sys.path.insert(0, "venv/Lib/site-packages")
 
@@ -238,7 +237,7 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
 # Creates and updates an embed every 60 seconds.
 @tasks.loop(seconds=60)
 async def update_server_embed():
-    embed = discord.Embed(title="DCS Server Information", description="Updated in real-time.",
+    embed = Embed(title="DCS Server Information", description="Updated in real-time.",
                           color=0x3EBBE7)
     embed.set_author(name="Digital Controllers")
     embed.set_thumbnail(
@@ -254,7 +253,7 @@ async def update_server_embed():
         except KeyError:  # If name isn't in server_player_count_url_dict then prevents execution.
             raise ValueError("Server not found.")
         except:  # in future, figure out exact error thrown by urllib
-            raise urllib.error.URLError("Error while fetching data.")
+            raise URLError("Error while fetching data.")
         response_dict = json.loads(response)
 
         match server:
