@@ -183,6 +183,28 @@ async def metar(interaction: Interaction, airport: str, decode: bool = False):
             await interaction.response.send_message("Failed to fetch decoded METAR.")
 
 
+
+def get_server_info(server_name: str) -> dict:
+    with urlopen(server_player_count_url_dict[server_name]) as pipe:
+            response = pipe.read().decode('utf-8')
+    return json.loads(response)
+
+def parse_server_info(server_name: str, server_data: dict) -> dict:
+    # Deal with different servers formatting json differently
+    if server_name in {'gaw', 'pgaw'}:
+        seconds_to_restart = timedelta(seconds=14400 - int(server_data['data']['uptime']))
+        return {'players': f"{int(server_data['players']) - 1} player(s) online",  # Account for slmod?
+                            'restart': f"Restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R> ("
+                                       f"may be inaccurate)",
+                            'metar': f"METAR: {server_data['data']['metar']}"}
+    elif server_name in {'lkeu', 'lkus'}:
+        seconds_to_restart = timedelta(seconds=int(server_data['restartPeriod']) - int(server_data['modelTime']))
+        return {'players': f"{int(server_data['players']['current']) - 1} player(s) online",
+                            # Account for lk_admin
+                            'restart': f"Restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>"}
+    else:
+        raise KeyError(server_name)
+
 @app_commands.command()
 @app_commands.describe(name="DCS server selection")
 @app_commands.choices(name=[
@@ -202,8 +224,7 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
     details = details.lower()
 
     try:
-        with urlopen(server_player_count_url_dict[name]) as pipe:
-            response = pipe.read().decode('utf-8')
+        response_dict = get_server_info(name)
     except KeyError:  # If name isn't in server_player_count_url_dict then prevents execution
         await interaction.response.send_message('Specified DCS server could not be found')
         return
@@ -211,26 +232,13 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
         await interaction.response.send_message('Something went wrong trying to get the data. Try again, maybe?')
         return
 
-    response_dict = json.loads(response)
-
-    # Deal with different servers formatting json differently
-    if name in {'gaw', 'pgaw'}:
-        seconds_to_restart = timedelta(seconds=14400 - int(response_dict['data']['uptime']))
-        response_strings = {'players': f"{int(response_dict['players']) - 1} player(s) online",  # Account for slmod?
-                            'restart': f"Restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R> ("
-                                       f"may be inaccurate)",
-                            'metar': f"METAR: {response_dict['data']['metar']}"}
-    elif name in {'lkeu', 'lkus'}:
-        seconds_to_restart = timedelta(seconds=int(response_dict['restartPeriod']) - int(response_dict['modelTime']))
-        response_strings = {'players': f"{int(response_dict['players']['current']) - 1} player(s) online",
-                            # Account for lk_admin
-                            'restart': f"Restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>"}
+    response_data = parse_server_info(name, response_dict)
 
     if details == 'all':
-        await interaction.response.send_message(' | '.join(response_strings.values()))
+        await interaction.response.send_message(' | '.join(response_data.values()))
     else:
         try:
-            await interaction.response.send_message(response_strings[details])
+            await interaction.response.send_message(response_data[details])
         except KeyError:
             await interaction.response.send_message("Requested data isn't available for that server")
 
@@ -245,44 +253,19 @@ async def update_server_embed():
         url="https://raw.githubusercontent.com/Digital-Controllers/website/main/docs/assets/logo.png")
     embed.set_footer(
         text="Want to add a new server to the embed? Propose it in #development or add a GitHub issue.")
-    servers = ["gaw", "pgaw", "lkeu", "lkus"]
+
+    servers = server_player_count_url_dict.keys()
 
     for server in servers:
         try:
-            with urlopen(server_player_count_url_dict[server]) as pipe:
-                response = pipe.read().decode('utf-8')
+            response = get_server_info(server)
         except KeyError:  # If name isn't in server_player_count_url_dict then prevents execution.
             raise ValueError("Server not found.")
         except:  # in future, figure out exact error thrown by urllib
             raise urllib.error.URLError("Error while fetching data.")
         response_dict = json.loads(response)
 
-        match server:
-            # Player counts account for server moderators.
-            case "gaw":
-                seconds_to_restart = timedelta(seconds=14400 - int(response_dict['data']['uptime']))
-                players = response_dict['players'] - 1
-                response = f"{players} player(s) online, " \
-                           f"restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>. " \
-                           f"METAR: `{response_dict['data']['metar']}`"
-            case "pgaw":
-                seconds_to_restart = timedelta(seconds=14400 - int(response_dict['data']['uptime']))
-                players = response_dict['players'] - 1
-                response = f"{players} player(s) online, " \
-                           f"restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>. " \
-                           f"METAR: `{response_dict['data']['metar']}`"
-            case "lkeu":
-                seconds_to_restart = timedelta(
-                    seconds=int(response_dict['restartPeriod']) - int(response_dict['modelTime']))
-                players = response_dict['players']['current'] - 1
-                response = f"{players} player(s) online, " \
-                           f"restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>"
-            case "lkus":
-                seconds_to_restart = timedelta(
-                    seconds=int(response_dict['restartPeriod']) - int(response_dict['modelTime']))
-                players = response_dict['players']['current'] - 1
-                response = f"{players} player(s) online, " \
-                           f"restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>"
+        response = parse_server_info(server, response_dict)
         embed.add_field(name=f"{server.upper()}", value=response, inline=False)
 
     try:
