@@ -14,7 +14,7 @@ def get_hoggit(server: Literal['gaw', 'pgaw']) -> dict:
 	# List comprehension to end all list comprehensions (filters all except enemy air units with non-standard names)
 	players = [v['Pilot'] for v in data_dict['objects'] if v['Coalition'] == 'Enemies' and v['Type'] in {'Air+FixedWing', 'Air+Rotorcraft'} and not match(r'USA air \d+ unit\d', v['Pilot'])]
 
-	return {'player_count': int(data_dict['players']) - 1,
-			'players': players,
-			'metar': data_dict['metar'],
-			'restart': round((datetime.fromisoformat(data_dict['updateTime']) + seconds_to_restart).timestamp())}
+	return {'player_count': f"{int(data_dict['players']) - 1} player(s) online",
+			'players': f"Players online: {', '.join(players)}",
+			'metar': f"METAR: {data_dict['metar']}",
+			'restart': f"Restart <t:{round((datetime.fromisoformat(data_dict['updateTime']) + seconds_to_restart).timestamp())}:R>"}
