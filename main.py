@@ -185,6 +185,15 @@ async def metar(interaction: Interaction, airport: str, decode: bool = False):
 
 
 def get_server_info(server_name: str) -> dict:
+    '''
+    Returns a dictionary of information retrieved from server_name
+
+            Parameters:
+                    server_name (str): the short key name of the server
+
+            Returns:
+                    response (dict): dictionary of the server's response
+    '''
     with urlopen(server_player_count_url_dict[server_name]) as pipe:
             response = pipe.read().decode('utf-8')
     return json.loads(response)
@@ -257,15 +266,7 @@ async def update_server_embed():
     servers = server_player_count_url_dict.keys()
 
     for server in servers:
-        try:
-            response = get_server_info(server)
-        except KeyError:  # If name isn't in server_player_count_url_dict then prevents execution.
-            raise ValueError("Server not found.")
-        except:  # in future, figure out exact error thrown by urllib
-            raise urllib.error.URLError("Error while fetching data.")
-        response_dict = json.loads(response)
-
-        response = parse_server_info(server, response_dict)
+        response = parse_server_info(server, get_server_info(server))
         embed.add_field(name=f"{server.upper()}", value=response, inline=False)
 
     try:
