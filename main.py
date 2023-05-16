@@ -196,7 +196,7 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
     Gets player count info for designated servers
     Args:
         name | Choice[str] | Name of server
-        *sub_cats | tuple | List of wanted statistics, blank sends all
+        details | str | Wanted statistics, defaults to all
     """
     name = name.value  # take the actual string value from the input Choice
     details = details.lower()
