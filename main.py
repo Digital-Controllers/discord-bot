@@ -4,13 +4,10 @@ from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from PIL import Image, ImageDraw, ImageFont
 from urllib.request import urlopen
-from urllib.error import URLError
 import json
 import os
 import random
-import sys
-
-sys.path.insert(0, "venv/Lib/site-packages")
+import server_data
 
 
 # =======UTILITIES=======
@@ -65,10 +62,6 @@ HOLDING_POINTS = ["A", "B", "C", "D"]
 AERODROMES = ["UG5X", "UG24", "UGKO", "UGKS", "URKA", "URKN", "URMM", "URSS"]
 RUNWAYS = ["22", "04"]
 DEPARTURES = ["GAM1D", "PAL1D", "ARN1D", "TIB1D", "SOR1D", "RUD1D", "AGI1D", "DIB1D", "TUN1D", "NAL1D"]
-server_player_count_url_dict = {'gaw': 'https://status.hoggitworld.com/f67eecc6-4659-44fd-a4fd-8816c993ad0e',
-                                'pgaw': 'https://status.hoggitworld.com/243bd8b1-3198-4c0b-817a-fadb40decf23',
-                                'lkeu': 'https://levant.eu.limakilo.net/status/data',
-                                'lkus': 'https://levant.na.limakilo.net/status/data'}
 
 
 def check_is_owner():
@@ -142,45 +135,11 @@ async def update_server_embed():
         url="https://raw.githubusercontent.com/Digital-Controllers/website/main/docs/assets/logo.png")
     embed.set_footer(
         text="Want to add a new server to the embed? Propose it in #development or add a GitHub issue.")
-    servers = ["gaw", "pgaw", "lkeu", "lkus"]
 
-    for server in servers:
-        try:
-            with urlopen(server_player_count_url_dict[server]) as pipe:
-                response = pipe.read().decode('utf-8')
-        except KeyError:  # If name isn't in server_player_count_url_dict then prevents execution.
-            raise ValueError("Server not found.")
-        except:  # in future, figure out exact error thrown by urllib
-            raise URLError("Error while fetching data.")
-        response_dict = json.loads(response)
-
-        match server:
-            # Player counts account for server moderators.
-            case "gaw":
-                seconds_to_restart = timedelta(seconds=14400 - int(response_dict['data']['uptime']))
-                players = response_dict['players'] - 1
-                response = f"{players} player(s) online, " \
-                           f"restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>. " \
-                           f"METAR: `{response_dict['data']['metar']}`"
-            case "pgaw":
-                seconds_to_restart = timedelta(seconds=14400 - int(response_dict['data']['uptime']))
-                players = response_dict['players'] - 1
-                response = f"{players} player(s) online, " \
-                           f"restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>. " \
-                           f"METAR: `{response_dict['data']['metar']}`"
-            case "lkeu":
-                seconds_to_restart = timedelta(
-                    seconds=int(response_dict['restartPeriod']) - int(response_dict['modelTime']))
-                players = response_dict['players']['current'] - 1
-                response = f"{players} player(s) online, " \
-                           f"restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>"
-            case "lkus":
-                seconds_to_restart = timedelta(
-                    seconds=int(response_dict['restartPeriod']) - int(response_dict['modelTime']))
-                players = response_dict['players']['current'] - 1
-                response = f"{players} player(s) online, " \
-                           f"restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>"
-        embed.add_field(name=f"{server.upper()}", value=response, inline=False)
+    for server_name, server_info in (('GAW', server_data.gaw), ('PGAW', server_data.pgaw),
+                                     ('LKEU', server_data.lkeu), ('LKNA', server_data.lkna)):
+        response = ', '.join([value for key, value in server_info.items() if key not in {'players'}])
+        embed.add_field(name=server_name, value=response, inline=False)
 
     try:
         channel = bot.get_channel(1099805791487266976)
@@ -207,6 +166,13 @@ async def sync_command_tree(ctx):
 async def sync_command_tree_error(ctx, error):
     if isinstance(error, AccessDeniedMessage):
         await ctx.reply(error)
+
+
+@bot.command()
+@check_is_owner()
+async def update_embed(ctx):
+    await ctx.reply("Embed update sequence has begun.")
+    await update_server_embed.start()
 
 
 # =======APP COMMANDS=======
@@ -256,49 +222,21 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
         name | Choice[str] | Name of server
         details | str | Wanted statistics, defaults to all
     """
-    name = name.value  # take the actual string value from the input Choice
+    server = name.value  # take the actual string value from the input Choice
     details = details.lower()
 
     try:
-        with urlopen(server_player_count_url_dict[name]) as pipe:
-            response = pipe.read().decode('utf-8')
-    except KeyError:  # If name isn't in server_player_count_url_dict then prevents execution
-        await interaction.response.send_message('Specified DCS server could not be found')
-        return
-    except:  # PEP8 is screaming at me, but I don't know enough about urllib to figure out what error is thrown
-        await interaction.response.send_message('Something went wrong trying to get the data. Try again, maybe?')
-        return
-
-    response_dict = json.loads(response)
-
-    # Deal with different servers formatting json differently
-    if name in {'gaw', 'pgaw'}:
-        seconds_to_restart = timedelta(seconds=14400 - int(response_dict['data']['uptime']))
-        response_strings = {'players': f"{int(response_dict['players']) - 1} player(s) online",  # Account for slmod?
-                            'restart': f"Restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R> ("
-                                       f"may be inaccurate)",
-                            'metar': f"METAR: {response_dict['data']['metar']}"}
-    elif name in {'lkeu', 'lkus'}:
-        seconds_to_restart = timedelta(seconds=int(response_dict['restartPeriod']) - int(response_dict['modelTime']))
-        response_strings = {'players': f"{int(response_dict['players']['current']) - 1} player(s) online",
-                            # Account for lk_admin
-                            'restart': f"Restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>"}
+        stats = server_data.__getattr__(server)
+    except AttributeError:
+        interaction.response.send_message('Requested server could not be found')
 
     if details == 'all':
-        await interaction.response.send_message(' | '.join(response_strings.values()))
+        await interaction.response.send_message(', '.join([value for key, value in stats.items() if key not in {'players'}]))
     else:
         try:
-            await interaction.response.send_message(response_strings[details])
+            await interaction.response.send_message(stats[details])
         except KeyError:
             await interaction.response.send_message("Requested data isn't available for that server")
-
-
-@bot.command()
-@check_is_owner()
-async def update_embed(ctx):
-    await ctx.reply(
-        "Embed update sequence has begun.")
-    await update_server_embed.start()
 
 
 # =======BOT SETUP AND RUN=======

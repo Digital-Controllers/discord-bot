@@ -13,4 +13,4 @@ def get_lk(server: Literal['eu', 'na']) -> dict:
 
 	return {'player_count': f"{int(data_dict['players']['current']) - 1} player(s) online",
 			'players': f"Players online: {', '.join([i['name'] for i in data_dict['players']['list']])}",
-			'restart': f"Restart <t:{round((datetime.fromisoformat(data_dict['date']) + seconds_to_restart).timestamp())}:R>"}
+			'restart': f"restart <t:{round((datetime.fromisoformat(data_dict['date']) + seconds_to_restart).timestamp())}:R>"}

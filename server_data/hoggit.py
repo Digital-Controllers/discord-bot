@@ -18,5 +18,5 @@ def get_hoggit(server: Literal['gaw', 'pgaw']) -> dict:
 
     return {'player_count': f"{int(data_dict['players']) - 1} player(s) online",
             'players': f"Players online: {', '.join(players)}",
-            'metar': f"METAR: {data_dict['metar']}",
-            'restart': f"Restart <t:{round((datetime.fromisoformat(data_dict['updateTime']) + seconds_to_restart).timestamp())}:R>"}
+            'metar': f"METAR: `{data_dict['metar']}`",
+            'restart': f"restart <t:{round((datetime.fromisoformat(data_dict['updateTime']) + seconds_to_restart).timestamp())}:R>"}
