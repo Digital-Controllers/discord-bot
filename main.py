@@ -10,7 +10,6 @@ import os
 import random
 import sys
 
-
 sys.path.insert(0, "venv/Lib/site-packages")
 
 
@@ -133,6 +132,66 @@ async def on_member_join(member):
     os.remove("strip.png")
 
 
+# Creates and updates an embed every 120 seconds.
+@tasks.loop(seconds=120)
+async def update_server_embed():
+    embed = Embed(title="DCS Server Information", description="Updated in real-time.",
+                  color=0x3EBBE7)
+    embed.set_author(name="Digital Controllers")
+    embed.set_thumbnail(
+        url="https://raw.githubusercontent.com/Digital-Controllers/website/main/docs/assets/logo.png")
+    embed.set_footer(
+        text="Want to add a new server to the embed? Propose it in #development or add a GitHub issue.")
+    servers = ["gaw", "pgaw", "lkeu", "lkus"]
+
+    for server in servers:
+        try:
+            with urlopen(server_player_count_url_dict[server]) as pipe:
+                response = pipe.read().decode('utf-8')
+        except KeyError:  # If name isn't in server_player_count_url_dict then prevents execution.
+            raise ValueError("Server not found.")
+        except:  # in future, figure out exact error thrown by urllib
+            raise URLError("Error while fetching data.")
+        response_dict = json.loads(response)
+
+        match server:
+            # Player counts account for server moderators.
+            case "gaw":
+                seconds_to_restart = timedelta(seconds=14400 - int(response_dict['data']['uptime']))
+                players = response_dict['players'] - 1
+                response = f"{players} player(s) online, " \
+                           f"restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>. " \
+                           f"METAR: `{response_dict['data']['metar']}`"
+            case "pgaw":
+                seconds_to_restart = timedelta(seconds=14400 - int(response_dict['data']['uptime']))
+                players = response_dict['players'] - 1
+                response = f"{players} player(s) online, " \
+                           f"restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>. " \
+                           f"METAR: `{response_dict['data']['metar']}`"
+            case "lkeu":
+                seconds_to_restart = timedelta(
+                    seconds=int(response_dict['restartPeriod']) - int(response_dict['modelTime']))
+                players = response_dict['players']['current'] - 1
+                response = f"{players} player(s) online, " \
+                           f"restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>"
+            case "lkus":
+                seconds_to_restart = timedelta(
+                    seconds=int(response_dict['restartPeriod']) - int(response_dict['modelTime']))
+                players = response_dict['players']['current'] - 1
+                response = f"{players} player(s) online, " \
+                           f"restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>"
+        embed.add_field(name=f"{server.upper()}", value=response, inline=False)
+
+    try:
+        channel = bot.get_channel(1099805791487266976)
+        if bot.server_embed is None:
+            bot.server_embed = await channel.send(embed=embed)
+        else:
+            await bot.server_embed.edit(embed=embed)
+    except:
+        print("Embed update failed.")
+
+
 # =======BOT COMMANDS=======
 
 
@@ -232,66 +291,6 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
             await interaction.response.send_message(response_strings[details])
         except KeyError:
             await interaction.response.send_message("Requested data isn't available for that server")
-
-
-# Creates and updates an embed every 60 seconds.
-@tasks.loop(seconds=60)
-async def update_server_embed():
-    embed = Embed(title="DCS Server Information", description="Updated in real-time.",
-                          color=0x3EBBE7)
-    embed.set_author(name="Digital Controllers")
-    embed.set_thumbnail(
-        url="https://raw.githubusercontent.com/Digital-Controllers/website/main/docs/assets/logo.png")
-    embed.set_footer(
-        text="Want to add a new server to the embed? Propose it in #development or add a GitHub issue.")
-    servers = ["gaw", "pgaw", "lkeu", "lkus"]
-
-    for server in servers:
-        try:
-            with urlopen(server_player_count_url_dict[server]) as pipe:
-                response = pipe.read().decode('utf-8')
-        except KeyError:  # If name isn't in server_player_count_url_dict then prevents execution.
-            raise ValueError("Server not found.")
-        except:  # in future, figure out exact error thrown by urllib
-            raise URLError("Error while fetching data.")
-        response_dict = json.loads(response)
-
-        match server:
-            # Player counts account for server moderators.
-            case "gaw":
-                seconds_to_restart = timedelta(seconds=14400 - int(response_dict['data']['uptime']))
-                players = response_dict['players'] - 1
-                response = f"{players} player(s) online, " \
-                           f"restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>. " \
-                           f"METAR: `{response_dict['data']['metar']}`"
-            case "pgaw":
-                seconds_to_restart = timedelta(seconds=14400 - int(response_dict['data']['uptime']))
-                players = response_dict['players'] - 1
-                response = f"{players} player(s) online, " \
-                           f"restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>. " \
-                           f"METAR: `{response_dict['data']['metar']}`"
-            case "lkeu":
-                seconds_to_restart = timedelta(
-                    seconds=int(response_dict['restartPeriod']) - int(response_dict['modelTime']))
-                players = response_dict['players']['current'] - 1
-                response = f"{players} player(s) online, " \
-                           f"restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>"
-            case "lkus":
-                seconds_to_restart = timedelta(
-                    seconds=int(response_dict['restartPeriod']) - int(response_dict['modelTime']))
-                players = response_dict['players']['current'] - 1
-                response = f"{players} player(s) online, " \
-                           f"restart <t:{round((datetime.now() + seconds_to_restart).timestamp())}:R>"
-        embed.add_field(name=f"{server.upper()}", value=response, inline=False)
-
-    try:
-        channel = bot.get_channel(1026224388665786418)
-        if bot.server_embed is None:
-            bot.server_embed = await channel.send(embed=embed)
-        else:
-            await bot.server_embed.edit(embed=embed)
-    except:
-        print("Embed update failed.")
 
 
 @bot.command()
