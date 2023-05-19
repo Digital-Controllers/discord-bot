@@ -255,6 +255,8 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
 
 
 bot.tree.add_command(ping)
+bot.tree.add_command(opt_in)
+bot.tree.add_command(opt_out)
 bot.tree.add_command(metar)
 bot.tree.add_command(info)
 bot.run(TOKEN)
