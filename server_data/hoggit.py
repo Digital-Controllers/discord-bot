@@ -10,6 +10,9 @@ def get_hoggit(server: Literal['gaw', 'pgaw']) -> dict:
         response = pipe.read().decode('utf-8')
     data_dict = loads(response)
 
+    if data_dict is None:
+        return {'exception': 'Server offline'}
+
     seconds_to_restart = timedelta(seconds=14400 - int(data_dict['uptime']))
     # List comprehension to end all list comprehensions (filters all except enemy air units with non-standard names)
     players = [v['Pilot'] for v in data_dict['objects'] if
