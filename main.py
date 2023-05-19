@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from discord import app_commands, Embed, File, Intents, Interaction
-from discord.ext import tasks
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from PIL import Image, ImageDraw, ImageFont
 from urllib.request import urlopen
