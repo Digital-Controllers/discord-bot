@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from os import getenv
 from sys import argv
+from pathlib import Path
 import pymysql
 
 
@@ -50,7 +51,7 @@ def log_user(username: str, state: bool):
 			db_conn.commit()
 
 
-load_dotenv('../.env')
+load_dotenv(Path(__file__).parent / '../.env')
 comms_dict = {0: 'opt out', 1: 'opt in'}
 
 
