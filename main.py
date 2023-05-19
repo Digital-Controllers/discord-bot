@@ -142,7 +142,7 @@ async def update_server_embed():
         embed.add_field(name=server_name, value=response, inline=False)
 
     try:
-        channel = bot.get_channel(1099805791487266976)
+        channel = bot.get_channel(1108848019908071604)
         if bot.server_embed is None:
             bot.server_embed = await channel.send(embed=embed)
         else:
@@ -182,6 +182,18 @@ async def update_embed(ctx):
 async def ping(interaction: Interaction):
     latency = str(bot.latency)[:-13]
     await interaction.response.send_message(f"Pong! Ping is {latency}s.")
+
+
+@app_commands.command()
+async def opt_in(interaction: Interaction, dcs_username: str):
+    server_data.log_user(dcs_username, True)
+    await interaction.response.send_message(f"You've opted in to Digital Controllers events under the username {dcs_username}")
+
+
+@app_commands.command()
+async def opt_out(interaction: Interaction, dcs_username: str):
+    server_data.log_user(dcs_username, False)
+    await interaction.response.send_message(f"You've opted out of Digital Controllers events under the username {dcs_username}")
 
 
 @app_commands.command()
