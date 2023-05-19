@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from discord import app_commands, Embed, File, Intents, Interaction
-from discord.ext import commands, tasks
+from discord.ext import tasks
 from dotenv import load_dotenv
 from PIL import Image, ImageDraw, ImageFont
 from urllib.request import urlopen
@@ -14,11 +14,6 @@ import server_data
 
 # Raised if something is wrong when we load the config file.
 class ConfigurationFileException(Exception):
-    pass
-
-
-# used in owner check
-class AccessDeniedMessage(commands.CheckFailure):
     pass
 
 
@@ -71,19 +66,19 @@ def check_is_owner():
         @bot.command()
         @check_is_owner()
         async def command(...):
-        will automatically say "Failed owner check." on failure
+        Commands with this check should not appear to any non-admin 
     Args:
         None
     Returns:
-        True <or> AccessDeniedMessage | If owner is or is not in config
+        True or False | If owner is or is not in config
     """
 
-    def predicate(ctx):
-        if ctx.author.id not in cfg["OWNER_IDS"]:  # May not be coroutine-safe in the future, fine for now
-            raise AccessDeniedMessage("Failed owner check.")
+    def predicate(interaction: Interaction):
+        if interaction.user.id not in cfg["OWNER_IDS"]:  # May not be coroutine-safe in the future, fine for now
+            return False
         return True
 
-    return commands.check(predicate)
+    return app_commands.check(predicate)
 
 
 # =======EVENTS AND LOOPS=======
@@ -151,31 +146,21 @@ async def update_server_embed():
         print("Embed update failed.")
 
 
-# =======BOT COMMANDS=======
-
-
-@bot.command()
-@check_is_owner()
-async def sync_command_tree(ctx):
-    await bot.tree.sync()
-    await ctx.reply(
-        "Tree synced.")
-
-
-@sync_command_tree.error
-async def sync_command_tree_error(ctx, error):
-    if isinstance(error, AccessDeniedMessage):
-        await ctx.reply(error)
-
-
-@bot.command()
-@check_is_owner()
-async def update_embed(ctx):
-    await ctx.reply("Embed update sequence has begun.")
-    await update_server_embed.start()
-
-
 # =======APP COMMANDS=======
+
+
+@app_commands.command()
+@check_is_owner()
+async def sync_command_tree(interaction: Interaction):
+    await bot.tree.sync()
+    await interaction.response.send_message("Tree synced.", ephemeral = True)
+
+
+@app_commands.command()
+@check_is_owner()
+async def update_embed(interaction: Interaction):
+    await interaction.response.send_message("Embed update sequence has begun.", Ephemeral = True)
+    await update_server_embed.start()
 
 
 @app_commands.command()
@@ -245,4 +230,6 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
 bot.tree.add_command(ping)
 bot.tree.add_command(metar)
 bot.tree.add_command(info)
+bot.tree.add_command(sync_command_tree)
+bot.tree.add_command(update_embed)
 bot.run(TOKEN)
