@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from discord import app_commands, Embed, File, Intents, Interaction
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
@@ -67,8 +67,6 @@ def check_is_owner():
         @check_is_owner()
         async def command(...):
         Commands with this check should not appear to any non-admin 
-    Args:
-        None
     Returns:
         True or False | If owner is or is not in config
     """
@@ -137,7 +135,7 @@ async def update_server_embed():
         embed.add_field(name=server_name, value=response, inline=False)
 
     try:
-        channel = bot.get_channel(1099805791487266976)
+        channel = bot.get_channel(1099805424934469652)
         if bot.server_embed is None:
             bot.server_embed = await channel.send(embed=embed)
         else:
@@ -153,13 +151,13 @@ async def update_server_embed():
 @check_is_owner()
 async def sync_command_tree(interaction: Interaction):
     await bot.tree.sync()
-    await interaction.response.send_message("Tree synced.", ephemeral = True)
+    await interaction.response.send_message("Tree synced.", ephemeral=True)
 
 
 @app_commands.command()
 @check_is_owner()
 async def update_embed(interaction: Interaction):
-    await interaction.response.send_message("Embed update sequence has begun.", Ephemeral = True)
+    await interaction.response.send_message("Embed update sequence has begun.", ephemeral=True)
     await update_server_embed.start()
 
 
@@ -182,7 +180,8 @@ async def metar(interaction: Interaction, airport: str, decode: bool = False):
     else:  # If user wants decoded METAR
         try:
             with urlopen(
-                    f"https://beta.aviationweather.gov/cgi-bin/data/metar.php?ids={airport.upper()}&format=decoded") as x:
+                    f"https://beta.aviationweather.gov/cgi-bin/data/metar.php?ids={airport.upper()}&format=decoded")\
+                    as x:
                 data = x.read().decode("utf-8")
                 if not data:
                     raise ValueError("Response was empty.")
@@ -216,7 +215,8 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
         interaction.response.send_message('Requested server could not be found')
 
     if details == 'all':
-        await interaction.response.send_message(', '.join([value for key, value in stats.items() if key not in {'players'}]))
+        await interaction.response.send_message(
+            ', '.join([value for key, value in stats.items() if key not in {'players'}]))
     else:
         try:
             await interaction.response.send_message(stats[details])
