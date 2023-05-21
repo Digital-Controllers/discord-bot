@@ -27,7 +27,7 @@ def check_usernames(data_dict: dict) -> dict:
 				if comms_data := cursor.fetchone():
 					user_data.append((username, comms_dict[comms_data[0]]))
 				else:
-					user_data.append((username, 'unknown'))
+					user_data.append((username, 'Unknown'))
 	data_dict['players'] = user_data
 	return data_dict
 
@@ -52,7 +52,7 @@ def log_user(username: str, state: bool):
 
 
 load_dotenv(Path(__file__).parent / '../.env')
-comms_dict = {0: 'opt out', 1: 'opt in'}
+comms_dict = {0: 'Opt out', 1: 'Opt in'}
 
 
 # Set up table if it doesn't exist
