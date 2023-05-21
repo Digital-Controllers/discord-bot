@@ -1,6 +1,6 @@
 from datetime import datetime
-from discord import app_commands, Embed, File, Intents, Interaction
-from discord.ext import commands, tasks
+from discord import app_commands, File, Intents, Interaction
+from discord.ext import commands
 from dotenv import load_dotenv
 from PIL import Image, ImageDraw, ImageFont
 from urllib.request import urlopen
@@ -8,6 +8,7 @@ import json
 import os
 import random
 import server_data
+import tb_embeds
 
 
 # =======UTILITIES=======
@@ -66,7 +67,7 @@ def check_is_owner():
         @bot.command()
         @check_is_owner()
         async def command(...):
-        Commands with this check should not appear to any non-admin 
+        Commands with this check should not appear to any non-admin
     Returns:
         True or False | If owner is or is not in config
     """
@@ -85,6 +86,8 @@ def check_is_owner():
 @bot.event
 async def on_ready():
     print(f"{bot.user} has connected to Discord!")
+    bot.server_embed = await tb_embeds.ServersEmbed.create(bot.get_channel(1108848019908071604))
+    await bot.tree.sync()
 
 
 @bot.event
@@ -118,32 +121,6 @@ async def on_member_join(member):
     os.remove("strip.png")
 
 
-# Creates and updates an embed every 120 seconds.
-@tasks.loop(seconds=120)
-async def update_server_embed():
-    embed = Embed(title="DCS Server Information", description="Updated in real-time.",
-                  color=0x3EBBE7)
-    embed.set_author(name="Digital Controllers")
-    embed.set_thumbnail(
-        url="https://raw.githubusercontent.com/Digital-Controllers/website/main/docs/assets/logo.png")
-    embed.set_footer(
-        text="Want to add a new server to the embed? Propose it in #development or add a GitHub issue.")
-
-    for server_name, server_info in (('GAW', server_data.gaw), ('PGAW', server_data.pgaw),
-                                     ('LKEU', server_data.lkeu), ('LKNA', server_data.lkna)):
-        response = ', '.join([value for key, value in server_info.items() if key not in {'players'}])
-        embed.add_field(name=server_name, value=response, inline=False)
-
-    try:
-        channel = bot.get_channel(1099805791487266976)
-        if bot.server_embed is None:
-            bot.server_embed = await channel.send(embed=embed)
-        else:
-            await bot.server_embed.edit(embed=embed)
-    except:
-        print("Embed update failed.")
-
-
 # =======APP COMMANDS=======
 
 
@@ -158,13 +135,25 @@ async def sync_command_tree(interaction: Interaction):
 @check_is_owner()
 async def update_embed(interaction: Interaction):
     await interaction.response.send_message("Embed update sequence has begun.", ephemeral=True)
-    await update_server_embed.start()
+    await bot.server_embed.update_embed()
 
 
 @app_commands.command()
 async def ping(interaction: Interaction):
     latency = str(bot.latency)[:-13]
     await interaction.response.send_message(f"Pong! Ping is {latency}s.")
+
+
+@app_commands.command()
+async def opt_in(interaction: Interaction, dcs_username: str):
+    server_data.log_user(dcs_username, True)
+    await interaction.response.send_message(f"You've opted in to Digital Controllers events under the username {dcs_username}")
+
+
+@app_commands.command()
+async def opt_out(interaction: Interaction, dcs_username: str):
+    server_data.log_user(dcs_username, False)
+    await interaction.response.send_message(f"You've opted out of Digital Controllers events under the username {dcs_username}")
 
 
 @app_commands.command()
@@ -215,8 +204,9 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
         interaction.response.send_message('Requested server could not be found')
 
     if details == 'all':
-        await interaction.response.send_message(
-            ', '.join([value for key, value in stats.items() if key not in {'players'}]))
+        await interaction.response.send_message(', '.join([value for key, value in stats.items() if key not in {'players'}]))
+    if details == 'players':
+        await interaction.response.send_message(embed=tb_embeds.PlayersEmbed(server, stats['players']))
     else:
         try:
             await interaction.response.send_message(stats[details])
@@ -228,6 +218,8 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
 
 
 bot.tree.add_command(ping)
+bot.tree.add_command(opt_in)
+bot.tree.add_command(opt_out)
 bot.tree.add_command(metar)
 bot.tree.add_command(info)
 bot.tree.add_command(sync_command_tree)
