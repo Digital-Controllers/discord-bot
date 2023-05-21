@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from discord import app_commands, Embed, File, Intents, Interaction
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
@@ -14,11 +14,6 @@ import server_data
 
 # Raised if something is wrong when we load the config file.
 class ConfigurationFileException(Exception):
-    pass
-
-
-# used in owner check
-class AccessDeniedMessage(commands.CheckFailure):
     pass
 
 
@@ -71,19 +66,17 @@ def check_is_owner():
         @bot.command()
         @check_is_owner()
         async def command(...):
-        will automatically say "Failed owner check." on failure
-    Args:
-        None
+        Commands with this check should not appear to any non-admin 
     Returns:
-        True <or> AccessDeniedMessage | If owner is or is not in config
+        True or False | If owner is or is not in config
     """
 
-    def predicate(ctx):
-        if ctx.author.id not in cfg["OWNER_IDS"]:  # May not be coroutine-safe in the future, fine for now
-            raise AccessDeniedMessage("Failed owner check.")
+    def predicate(interaction: Interaction):
+        if interaction.user.id not in cfg["OWNER_IDS"]:  # May not be coroutine-safe in the future, fine for now
+            return False
         return True
 
-    return commands.check(predicate)
+    return app_commands.check(predicate)
 
 
 # =======EVENTS AND LOOPS=======
@@ -142,7 +135,7 @@ async def update_server_embed():
         embed.add_field(name=server_name, value=response, inline=False)
 
     try:
-        channel = bot.get_channel(1099805791487266976)
+        channel = bot.get_channel(1099805424934469652)
         if bot.server_embed is None:
             bot.server_embed = await channel.send(embed=embed)
         else:
@@ -151,31 +144,21 @@ async def update_server_embed():
         print("Embed update failed.")
 
 
-# =======BOT COMMANDS=======
-
-
-@bot.command()
-@check_is_owner()
-async def sync_command_tree(ctx):
-    await bot.tree.sync()
-    await ctx.reply(
-        "Tree synced.")
-
-
-@sync_command_tree.error
-async def sync_command_tree_error(ctx, error):
-    if isinstance(error, AccessDeniedMessage):
-        await ctx.reply(error)
-
-
-@bot.command()
-@check_is_owner()
-async def update_embed(ctx):
-    await ctx.reply("Embed update sequence has begun.")
-    await update_server_embed.start()
-
-
 # =======APP COMMANDS=======
+
+
+@app_commands.command()
+@check_is_owner()
+async def sync_command_tree(interaction: Interaction):
+    await bot.tree.sync()
+    await interaction.response.send_message("Tree synced.", ephemeral=True)
+
+
+@app_commands.command()
+@check_is_owner()
+async def update_embed(interaction: Interaction):
+    await interaction.response.send_message("Embed update sequence has begun.", ephemeral=True)
+    await update_server_embed.start()
 
 
 @app_commands.command()
@@ -197,7 +180,8 @@ async def metar(interaction: Interaction, airport: str, decode: bool = False):
     else:  # If user wants decoded METAR
         try:
             with urlopen(
-                    f"https://beta.aviationweather.gov/cgi-bin/data/metar.php?ids={airport.upper()}&format=decoded") as x:
+                    f"https://beta.aviationweather.gov/cgi-bin/data/metar.php?ids={airport.upper()}&format=decoded")\
+                    as x:
                 data = x.read().decode("utf-8")
                 if not data:
                     raise ValueError("Response was empty.")
@@ -231,7 +215,8 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
         interaction.response.send_message('Requested server could not be found')
 
     if details == 'all':
-        await interaction.response.send_message(', '.join([value for key, value in stats.items() if key not in {'players'}]))
+        await interaction.response.send_message(
+            ', '.join([value for key, value in stats.items() if key not in {'players'}]))
     else:
         try:
             await interaction.response.send_message(stats[details])
@@ -245,4 +230,6 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
 bot.tree.add_command(ping)
 bot.tree.add_command(metar)
 bot.tree.add_command(info)
+bot.tree.add_command(sync_command_tree)
+bot.tree.add_command(update_embed)
 bot.run(TOKEN)
