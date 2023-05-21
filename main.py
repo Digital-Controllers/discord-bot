@@ -135,7 +135,7 @@ async def update_server_embed():
         embed.add_field(name=server_name, value=response, inline=False)
 
     try:
-        channel = bot.get_channel(1099805424934469652)
+        channel = bot.get_channel(1099805791487266976)
         if bot.server_embed is None:
             bot.server_embed = await channel.send(embed=embed)
         else:
