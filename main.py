@@ -1,6 +1,6 @@
-from datetime import datetime, timedelta
-from discord import app_commands, Embed, File, Intents, Interaction
-from discord.ext import commands, tasks
+from datetime import datetime
+from discord import app_commands, File, Intents, Interaction
+from discord.ext import commands
 from dotenv import load_dotenv
 from PIL import Image, ImageDraw, ImageFont
 from urllib.request import urlopen
@@ -93,6 +93,7 @@ def check_is_owner():
 @bot.event
 async def on_ready():
     print(f"{bot.user} has connected to Discord!")
+    bot.server_embed = await tb_embeds.ServersEmbed.create(bot.get_channel(1108848019908071604))
 
 
 @bot.event
@@ -126,32 +127,6 @@ async def on_member_join(member):
     os.remove("strip.png")
 
 
-# Creates and updates an embed every 120 seconds.
-@tasks.loop(seconds=120)
-async def update_server_embed():
-    embed = Embed(title="DCS Server Information", description="Updated in real-time.",
-                  color=0x3EBBE7)
-    embed.set_author(name="Digital Controllers")
-    embed.set_thumbnail(
-        url="https://raw.githubusercontent.com/Digital-Controllers/website/main/docs/assets/logo.png")
-    embed.set_footer(
-        text="Want to add a new server to the embed? Propose it in #development or add a GitHub issue.")
-
-    for server_name, server_info in (('GAW', server_data.gaw), ('PGAW', server_data.pgaw),
-                                     ('LKEU', server_data.lkeu), ('LKNA', server_data.lkna)):
-        response = ', '.join([value for key, value in server_info.items() if key not in {'players'}])
-        embed.add_field(name=server_name, value=response, inline=False)
-
-    try:
-        channel = bot.get_channel(1108848019908071604)
-        if bot.server_embed is None:
-            bot.server_embed = await channel.send(embed=embed)
-        else:
-            await bot.server_embed.edit(embed=embed)
-    except:
-        print("Embed update failed.")
-
-
 # =======BOT COMMANDS=======
 
 
@@ -173,7 +148,7 @@ async def sync_command_tree_error(ctx, error):
 @check_is_owner()
 async def update_embed(ctx):
     await ctx.reply("Embed update sequence has begun.")
-    await update_server_embed.start()
+    await bot.server_embed.update_embed()
 
 
 # =======APP COMMANDS=======
