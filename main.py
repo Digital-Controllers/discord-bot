@@ -205,7 +205,7 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
 
     if details == 'all':
         await interaction.response.send_message(', '.join([value for key, value in stats.items() if key not in {'players'}]))
-    if details == 'players':
+    elif details == 'players':
         await interaction.response.send_message(embed=tb_embeds.PlayersEmbed(server, stats['players']))
     else:
         try:
