@@ -86,7 +86,7 @@ def check_is_owner():
 @bot.event
 async def on_ready():
     print(f"{bot.user} has connected to Discord!")
-    bot.server_embed = await tb_embeds.ServersEmbed.create(bot.get_channel(1108848019908071604))
+    bot.server_embed = await tb_embeds.ServersEmbed.create(bot.get_channel(1099805791487266976))
     await bot.tree.sync()
 
 
