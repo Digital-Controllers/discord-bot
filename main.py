@@ -147,13 +147,13 @@ async def ping(interaction: Interaction):
 @app_commands.command()
 async def opt_in(interaction: Interaction, dcs_username: str):
     server_data.log_user(dcs_username, True)
-    await interaction.response.send_message(f"You've opted in to Digital Controllers events under the username {dcs_username}")
+    await interaction.response.send_message(f"You've opted in to Digital Controllers events under the username `{dcs_username}`.")
 
 
 @app_commands.command()
 async def opt_out(interaction: Interaction, dcs_username: str):
     server_data.log_user(dcs_username, False)
-    await interaction.response.send_message(f"You've opted out of Digital Controllers events under the username {dcs_username}")
+    await interaction.response.send_message(f"You've opted out of Digital Controllers events under the username `{dcs_username}`.")
 
 
 @app_commands.command()
@@ -201,17 +201,18 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
     try:
         stats = server_data.__getattr__(server)
     except AttributeError:
-        interaction.response.send_message('Requested server could not be found')
+        return interaction.response.send_message('Requested server could not be found')
 
     if details == 'all':
-        await interaction.response.send_message(', '.join([value for key, value in stats.items() if key not in {'players'}]))
+        await interaction.response.send_message(', '.join(
+            [value for key, value in stats.items() if key not in {'players'}]))
     elif details == 'players':
         await interaction.response.send_message(embed=tb_embeds.PlayersEmbed(server, stats['players']))
     else:
         try:
             await interaction.response.send_message(stats[details])
         except KeyError:
-            await interaction.response.send_message("Requested data isn't available for that server")
+            await interaction.response.send_message("Requested data isn't available for that server.")
 
 
 # =======BOT SETUP AND RUN=======
