@@ -29,6 +29,7 @@ class ServersEmbed(_Embed):
 
 		self.message = await channel.send(embed=self)
 		await self.update_embed()
+		self.update_embed.start()
 
 		return self
 
