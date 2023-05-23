@@ -201,7 +201,8 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
     try:
         stats = server_data.__getattr__(server)
     except AttributeError:
-        return interaction.response.send_message('Requested server could not be found')
+        await interaction.response.send_message('Requested server could not be found')
+        return
 
     if details == 'all':
         await interaction.response.send_message(', '.join(
