@@ -18,7 +18,7 @@ class ConfigurationFileException(Exception):
     pass
 
 
-# =======INIT=======
+# =======CONFIGS=======
 
 # check if we have a config.json, and that it's valid
 try:
@@ -47,6 +47,9 @@ except (FileNotFoundError, json.JSONDecodeError, ConfigurationFileException) as 
 
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
+
+
+# =======INIT=======
 
 bot = commands.Bot(command_prefix='t?', intents=Intents.all())
 
@@ -86,8 +89,6 @@ def check_is_owner():
 @bot.event
 async def on_ready():
     print(f"{bot.user} has connected to Discord!")
-    bot.server_embed = await tb_embeds.ServersEmbed.create(bot.get_channel(1099805791487266976))
-    await bot.tree.sync()
 
 
 @bot.event
@@ -134,8 +135,16 @@ async def sync_command_tree(interaction: Interaction):
 @app_commands.command()
 @check_is_owner()
 async def update_embed(interaction: Interaction):
-    await interaction.response.send_message("Embed update sequence has begun.", ephemeral=True)
-    await bot.server_embed.update_embed()
+    if bot.server_embed:
+        await interaction.response.send_message("Embed update sequence has begun.", ephemeral=True)
+        await bot.server_embed.update_embed()
+    else:
+        await interaction.response.send_message("Embed could not be found, creating new embed.", ephemeral=True)
+        try:
+            bot.server_embed = await tb_embeds.ServersEmbed.create(bot.get_channel(1099805791487266976))
+            await interaction.followup.send("New embed created.", ephemeral=True)
+        except AssertionError as err:
+            await interaction.followup.send(f"Error trying to create embed.\nError text: {err}", ephemeral=True)
 
 
 @app_commands.command()
@@ -219,11 +228,11 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
 # =======BOT SETUP AND RUN=======
 
 
-bot.tree.add_command(ping)
+bot.tree.add_command(info)
+bot.tree.add_command(metar)
 bot.tree.add_command(opt_in)
 bot.tree.add_command(opt_out)
-bot.tree.add_command(metar)
-bot.tree.add_command(info)
+bot.tree.add_command(ping)
 bot.tree.add_command(sync_command_tree)
 bot.tree.add_command(update_embed)
 bot.run(TOKEN)
