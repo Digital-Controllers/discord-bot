@@ -207,22 +207,20 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
     server = name.value  # take the actual string value from the input Choice
     details = details.lower()
 
-    try:
-        stats = server_data.__getattr__(server)
-    except AttributeError:
-        await interaction.response.send_message('Requested server could not be found')
-        return
+    await interaction.response.send_message('Getting server data...')
+
+    stats = server_data.__getattr__(server)
 
     if details == 'all':
-        await interaction.response.send_message(', '.join(
+        await interaction.edit_original_response(content=', '.join(
             [value for key, value in stats.items() if key not in {'players'}]))
     elif details == 'players':
-        await interaction.response.send_message(embed=tb_embeds.PlayersEmbed(server, stats['players']))
+        await interaction.edit_original_response(content='', embed=tb_embeds.PlayersEmbed(server, stats['players']))
     else:
         try:
-            await interaction.response.send_message(stats[details])
+            await interaction.edit_original_response(content=stats[details])
         except KeyError:
-            await interaction.response.send_message("Requested data isn't available for that server.")
+            await interaction.edit_original_response(content="Requested data isn't available for that server.")
 
 
 # =======BOT SETUP AND RUN=======
