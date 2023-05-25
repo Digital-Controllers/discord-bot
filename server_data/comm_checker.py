@@ -16,7 +16,7 @@ def check_usernames(data_dict: dict) -> dict:
 	Args:
 		data_dict | dict | Data dictionary reutrned from hoggit.get_hoggit or limakilo.get_lk
 	Returns:
-		user_data | list[tuple[str, str]] | List of tuples containting usernames and database data
+		data_dict | dict | Data dictionary updated with database data
 	"""
 	usernames = data_dict['players']
 	with _connect_to_db() as db_conn:

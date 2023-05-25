@@ -126,70 +126,6 @@ async def on_member_join(member):
 
 
 @app_commands.command()
-@check_is_owner()
-async def sync_command_tree(interaction: Interaction):
-    await bot.tree.sync()
-    await interaction.response.send_message("Tree synced.", ephemeral=True)
-
-
-@app_commands.command()
-@check_is_owner()
-async def update_embed(interaction: Interaction):
-    if bot.server_embed:
-        await interaction.response.send_message("Embed update sequence has begun.", ephemeral=True)
-        await bot.server_embed.update_embed()
-    else:
-        await interaction.response.send_message("Embed could not be found, creating new embed.", ephemeral=True)
-        try:
-            bot.server_embed = await tb_embeds.ServersEmbed.create(bot.get_channel(1099805791487266976))
-            await interaction.followup.send("New embed created.", ephemeral=True)
-        except AssertionError as err:
-            await interaction.followup.send(f"Error trying to create embed.\nError text: {err}", ephemeral=True)
-
-
-@app_commands.command()
-async def ping(interaction: Interaction):
-    latency = str(bot.latency)[:-13]
-    await interaction.response.send_message(f"Pong! Ping is {latency}s.")
-
-
-@app_commands.command()
-async def opt_in(interaction: Interaction, dcs_username: str):
-    server_data.log_user(dcs_username, True)
-    await interaction.response.send_message(f"You've opted in to Digital Controllers events under the username `{dcs_username}`.")
-
-
-@app_commands.command()
-async def opt_out(interaction: Interaction, dcs_username: str):
-    server_data.log_user(dcs_username, False)
-    await interaction.response.send_message(f"You've opted out of Digital Controllers events under the username `{dcs_username}`.")
-
-
-@app_commands.command()
-async def metar(interaction: Interaction, airport: str, decode: bool = False):
-    # Split options into 2 different try/except statements to give better debug output if necessary
-    if not decode:  # If user does not want the decoded METAR
-        try:
-            with urlopen(f"https://tgftp.nws.noaa.gov/data/observations/metar/stations/{airport.upper()}.TXT") as x:
-                data = x.read().decode("utf-8")
-            await interaction.response.send_message(f"```{data}```")
-        except:
-            await interaction.response.send_message(f"Failed to fetch default METAR.")
-    else:  # If user wants decoded METAR
-        try:
-            with urlopen(
-                    f"https://beta.aviationweather.gov/cgi-bin/data/metar.php?ids={airport.upper()}&format=decoded")\
-                    as x:
-                data = x.read().decode("utf-8")
-                if not data:
-                    raise ValueError("Response was empty.")
-                else:
-                    await interaction.response.send_message(f"```{data}```")
-        except:
-            await interaction.response.send_message("Failed to fetch decoded METAR.")
-
-
-@app_commands.command()
 @app_commands.describe(name="DCS server selection")
 @app_commands.choices(name=[
     app_commands.Choice(name="Hoggit - Georgia At War", value="gaw"),
@@ -221,6 +157,70 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
             await interaction.edit_original_response(content=stats[details])
         except KeyError:
             await interaction.edit_original_response(content="Requested data isn't available for that server.")
+
+
+@app_commands.command()
+async def metar(interaction: Interaction, airport: str, decode: bool = False):
+    # Split options into 2 different try/except statements to give better debug output if necessary
+    if not decode:  # If user does not want the decoded METAR
+        try:
+            with urlopen(f"https://tgftp.nws.noaa.gov/data/observations/metar/stations/{airport.upper()}.TXT") as x:
+                data = x.read().decode("utf-8")
+            await interaction.response.send_message(f"```{data}```")
+        except:
+            await interaction.response.send_message(f"Failed to fetch default METAR.")
+    else:  # If user wants decoded METAR
+        try:
+            with urlopen(
+                    f"https://beta.aviationweather.gov/cgi-bin/data/metar.php?ids={airport.upper()}&format=decoded")\
+                    as x:
+                data = x.read().decode("utf-8")
+                if not data:
+                    raise ValueError("Response was empty.")
+                else:
+                    await interaction.response.send_message(f"```{data}```")
+        except:
+            await interaction.response.send_message("Failed to fetch decoded METAR.")
+
+
+@app_commands.command()
+async def opt_in(interaction: Interaction, dcs_username: str):
+    server_data.log_user(dcs_username, True)
+    await interaction.response.send_message(f"You've opted in to Digital Controllers events under the username `{dcs_username}`.")
+
+
+@app_commands.command()
+async def opt_out(interaction: Interaction, dcs_username: str):
+    server_data.log_user(dcs_username, False)
+    await interaction.response.send_message(f"You've opted out of Digital Controllers events under the username `{dcs_username}`.")
+
+
+@app_commands.command()
+async def ping(interaction: Interaction):
+    latency = str(bot.latency)[:-13]
+    await interaction.response.send_message(f"Pong! Ping is {latency}s.")
+
+
+@app_commands.command()
+@check_is_owner()
+async def sync_command_tree(interaction: Interaction):
+    await bot.tree.sync()
+    await interaction.response.send_message("Tree synced.", ephemeral=True)
+
+
+@app_commands.command()
+@check_is_owner()
+async def update_embed(interaction: Interaction):
+    if bot.server_embed:
+        await interaction.response.send_message("Embed update sequence has begun.", ephemeral=True)
+        await bot.server_embed.update_embed()
+    else:
+        await interaction.response.send_message("Embed could not be found, creating new embed.", ephemeral=True)
+        try:
+            bot.server_embed = await tb_embeds.ServersEmbed.create(bot.get_channel(1099805791487266976))
+            await interaction.followup.send("New embed created.", ephemeral=True)
+        except AssertionError as err:
+            await interaction.followup.send(f"Error trying to create embed.\nError text: {err}", ephemeral=True)
 
 
 # =======BOT SETUP AND RUN=======
