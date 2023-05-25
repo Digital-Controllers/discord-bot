@@ -11,7 +11,7 @@ def get_hoggit(server: Literal['gaw', 'pgaw']) -> dict:
     data_dict = loads(response)
 
     if data_dict['objects'] is None:
-        return {'exception': 'Server offline'}
+        return {'exception': 'Server offline', 'players': []}
 
     seconds_to_restart = timedelta(seconds=14400 - int(data_dict['uptime']))
     # List comprehension to end all list comprehensions (filters all except enemy air units with non-standard names)
@@ -20,6 +20,6 @@ def get_hoggit(server: Literal['gaw', 'pgaw']) -> dict:
                    r'USA air \d+ unit\d', v['Pilot'])]
 
     return {'player_count': f"{int(data_dict['players']) - 1} player(s) online",
-            'players': f"Players online: {', '.join(players)}",
+            'players': players,
             'metar': f"METAR: `{data_dict['metar']}`",
             'restart': f"restart <t:{round((datetime.fromisoformat(data_dict['updateTime']) + seconds_to_restart).timestamp())}:R>"}
