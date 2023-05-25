@@ -7,6 +7,7 @@ from urllib.request import urlopen
 import json
 import os
 import random
+import re
 import server_data
 import tb_embeds
 
@@ -97,7 +98,8 @@ async def on_member_join(member):
     strip_text = {
         "slot": f"{time[11:16]}",
         "squawk": f"{random.randint(0, 6)}{random.randint(0, 7)}{random.randint(0, 7)}{random.randint(0, 7)}",
-        "callsign": f"{member.name.upper()[:4]}{random.randint(0, 9)}{random.randint(0, 9)}",
+        "callsign": (f"{re.sub('[^a-zA-Z0-9]', '', member.name.upper())[:4]}" 
+                     f"{random.randint(0, 9)}{random.randint(0, 9)}"),
         "aircraft": f"{random.choice(JETS)}",
         "hold": f"{random.choice(HOLDING_POINTS)}",
         "aerodrome": f"{random.choice(AERODROMES)}",
