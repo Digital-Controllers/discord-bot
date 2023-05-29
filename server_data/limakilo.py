@@ -10,7 +10,7 @@ def get_lk(server: Literal['eu', 'na']) -> dict:
 	data_dict = loads(response)
 
 	if data_dict is None:
-		return {'exception': 'Server offline', 'players': []}
+		return {'exception': 'Server offline'}
 
 	seconds_to_restart = timedelta(seconds=int(data_dict['restartPeriod']) - int(data_dict['modelTime']))
 

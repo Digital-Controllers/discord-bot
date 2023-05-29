@@ -18,6 +18,10 @@ def check_usernames(data_dict: dict) -> dict:
 	Returns:
 		data_dict | dict | Data dictionary updated with database data
 	"""
+	# Catches any server exceptions without wasting bandwidth and slowing processing
+	if 'exception' in data_dict.keys():
+		return data_dict
+
 	usernames = data_dict['players']
 	with _connect_to_db() as db_conn:
 		with db_conn.cursor() as cursor:
