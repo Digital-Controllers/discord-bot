@@ -35,10 +35,10 @@ class LockVar:
 class ServersThread:
 	def __init__(self):
 		self.close = LockVar(False)
-		self.gaw_data = LockVar({})
-		self.pgaw_data = LockVar({})
-		self.lkeu_data = LockVar({})
-		self.lkna_data = LockVar({})
+		self.gaw_data = LockVar({'exception': 'Getting data'})
+		self.pgaw_data = LockVar({'exception': 'Getting data'})
+		self.lkeu_data = LockVar({'exception': 'Getting data'})
+		self.lkna_data = LockVar({'exception': 'Getting data'})
 
 		self.thread = threading.Thread(target=self._loop, daemon=True)
 		self.thread.start()

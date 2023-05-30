@@ -225,7 +225,7 @@ async def update_embed(interaction: Interaction):
     else:
         await interaction.response.send_message("Embed could not be found, creating new embed.", ephemeral=True)
         try:
-            bot.server_embed = await tb_embeds.ServersEmbed.create(bot.get_channel(1108848019908071604))
+            bot.server_embed = await tb_embeds.ServersEmbed.create(bot.get_channel(1099805791487266976))
             await interaction.followup.send("New embed created.", ephemeral=True)
         except AssertionError as err:
             await interaction.followup.send(f"Error trying to create embed.\nError text: {err}", ephemeral=True)
