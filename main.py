@@ -159,7 +159,7 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
         await interaction.edit_original_response(content=', '.join(
             [value for key, value in stats.items() if key not in {'players'}]))
     elif details == 'players':
-        await interaction.edit_original_response(content='', embed=tb_embeds.PlayersEmbed(server, stats['players']))
+        await interaction.edit_original_response(content='', embed=tb_embeds.private.PlayersEmbed(server, stats['players']))
     else:
         try:
             await interaction.edit_original_response(content=stats[details])
@@ -225,7 +225,7 @@ async def update_embed(interaction: Interaction):
     else:
         await interaction.response.send_message("Embed could not be found, creating new embed.", ephemeral=True)
         try:
-            bot.server_embed = await tb_embeds.ServersEmbed.create(bot.get_channel(1099805791487266976))
+            bot.server_embed = await tb_embeds.private.ServersEmbed.create(bot.get_channel(1099805791487266976))
             await interaction.followup.send("New embed created.", ephemeral=True)
         except AssertionError as err:
             await interaction.followup.send(f"Error trying to create embed.\nError text: {err}", ephemeral=True)
