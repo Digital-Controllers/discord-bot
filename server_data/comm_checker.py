@@ -1,13 +1,12 @@
-from dotenv import load_dotenv
-from os import getenv
+from configs import configs
 from sys import argv
-from pathlib import Path
 import pymysql
 
 
 def _connect_to_db() -> pymysql.Connection:
 	""" Shell function to return a connection to database with variables in .env file """
-	return pymysql.connect(host=getenv('DBIP'), user=getenv('DBUN'), password=getenv('DBPW'), database=getenv('DBNAME'))
+	return pymysql.connect(host=configs.DBINFO['host'], user=configs.DBINFO['user'],
+						   password=configs.DBINFO['password'], database=configs.DBINFO['database'])
 
 
 def check_usernames(data_dict: dict) -> dict:
@@ -55,7 +54,6 @@ def log_user(username: str, state: bool):
 			db_conn.commit()
 
 
-load_dotenv(Path(__file__).parent / '../.env')
 comms_dict = {0: 'Opt out', 1: 'Opt in'}
 
 
