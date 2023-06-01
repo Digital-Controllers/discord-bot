@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from PIL import Image, ImageDraw, ImageFont
 from urllib.request import urlopen
 import json
+import logging
 import os
 import random
 import re
@@ -13,6 +14,9 @@ import tb_embeds
 
 
 # =======UTILITIES=======
+
+logging.basicConfig(filename='runtime.log', encoding='utf-8', level=logging.INFO)
+
 
 # Raised if something is wrong when we load the config file.
 class ConfigurationFileException(Exception):
@@ -54,7 +58,9 @@ TOKEN = os.getenv('TOKEN')
 
 bot = commands.Bot(command_prefix='t?', intents=Intents.all())
 
-print(f"Started at {str(datetime.utcnow())[:-16]}")
+utc_start = datetime.utcnow()
+print(f"Started at {str(utc_start)[:-16]}")
+logging.info("Started on %s", utc_start.strftime('%d-%m-%Y at %H:%M:%S UTC%z'))
 bot.server_embed = None
 
 JETS = ["F16", "F18", "F15", "F35", "F22", "A10", "F14", "MIR2"]

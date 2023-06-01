@@ -1,7 +1,10 @@
 from discord import Embed as _Embed
 from discord.abc import GuildChannel as _GuildChannel
 from discord.ext import tasks as _tasks
+from time import time
 import server_data as _server_data
+import logging
+
 
 server_dict = {'gaw': 'Hoggit - Georgia At War', 'pgaw': 'Hoggit - Persian Gulf At War',
 			   'lkeu': 'Lima Kilo - Flashpoint Levant - EU', 'lkna': 'Lima Kilo - Flashpoint Levant - NA'}
@@ -43,12 +46,15 @@ class ServersEmbed(_Embed):
 		"""Only separated from create to utilize super() and init class variables"""
 		super().__init__(title="DCS Server Information", description="Updated in real-time.", color=0x3EBBE7)
 		self.message = None
+		self.last_time = None
 
 	async def delete(self):
 		await self.message.delete()
 
 	@_tasks.loop(seconds=120)
 	async def update_embed(self):
+		if self.last_time and (delta := time() - self.last_time) > 120:
+			logging.warning('ServersEmbed update timer took %s seconds', delta)
 		update_data = (('gaw', _server_data.gaw), ('pgaw', _server_data.pgaw),
 					   ('lkeu', _server_data.lkeu), ('lkna', _server_data.lkna))
 		for i in range(len(update_data)):
@@ -56,3 +62,4 @@ class ServersEmbed(_Embed):
 			message = ', '.join([value for key, value in server_info.items() if key not in {'players'}])
 			self.set_field_at(i, name=server_dict[server_name], value=message, inline=False)
 		await self.message.edit(embed=self)
+		self.last_time = time()
