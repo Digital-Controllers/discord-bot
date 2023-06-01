@@ -3,6 +3,7 @@ from configs import configs
 from discord import app_commands, Interaction
 from tb_discord.tb_embeds.private import ServersEmbed
 from tb_discord import bot
+import logging
 
 
 __all__ = ['command_list']
@@ -21,7 +22,7 @@ def check_is_owner():
     """
 
     def predicate(interaction: Interaction):
-        if interaction.user.id not in configs.cfg["OWNER_IDS"]:  # May not be coroutine-safe in the future, fine for now
+        if interaction.user.id not in configs.owner_ids:  # May not be coroutine-safe in the future, fine for now
             return False
         return True
 
@@ -51,10 +52,11 @@ async def update_embed(interaction: Interaction):
     else:
         await interaction.response.send_message("Embed could not be found, creating new embed.", ephemeral=True)
         try:
-            bot.server_embed = await ServersEmbed.create(bot.get_channel(configs.dc_embed_channelid))
+            bot.server_embed = await ServersEmbed.create(bot.get_channel(configs.dc_embed_channel_id))
             await interaction.followup.send("New embed created.", ephemeral=True)
         except AssertionError as err:
             await interaction.followup.send(f"Error trying to create embed.\nError text: {err}", ephemeral=True)
+            logging.error('Bot failed to create embed; error text: %s', str(err))
 
 
 command_list = [sync_command_tree, update_embed]
