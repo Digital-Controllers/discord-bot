@@ -1,12 +1,4 @@
-from configs import configs
-from sys import argv
-import pymysql
-
-
-def _connect_to_db() -> pymysql.Connection:
-	""" Shell function to return a connection to database with variables in .env file """
-	return pymysql.connect(host=configs.DBINFO['host'], user=configs.DBINFO['user'],
-						   password=configs.DBINFO['password'], database=configs.DBINFO['database'])
+from tb_db import connect_to_db, sql_op
 
 
 def check_usernames(data_dict: dict) -> dict:
@@ -22,15 +14,11 @@ def check_usernames(data_dict: dict) -> dict:
 		return data_dict
 
 	usernames = data_dict['players']
-	with _connect_to_db() as db_conn:
-		with db_conn.cursor() as cursor:
-			user_data = []
-			for username in usernames:
-				cursor.execute("SELECT comms FROM user_comms WHERE username = %s;", (username,))
-				if comms_data := cursor.fetchone():
-					user_data.append((username, comms_dict[comms_data[0]]))
-				else:
-					user_data.append((username, 'Unknown'))
+
+	player_states = sql_op(["SELECT comms FROM user_comms WHERE username = %s;"] * len(usernames),
+						   [(uname,) for uname in usernames])
+	user_data = [(uname, comms_dict[comms_data[0]]) for uname, comms_data in zip(usernames, player_states)]
+
 	data_dict['players'] = user_data
 	return data_dict
 
@@ -44,7 +32,7 @@ def log_user(username: str, state: bool):
 	Returns:
 		None
 	"""
-	with _connect_to_db() as db_conn:
+	with connect_to_db() as db_conn:
 		with db_conn.cursor() as cursor:
 			cursor.execute("SELECT * FROM user_comms WHERE username = %s;", (username,))
 			if cursor.fetchone():
@@ -54,32 +42,10 @@ def log_user(username: str, state: bool):
 			db_conn.commit()
 
 
-comms_dict = {0: 'Opt out', 1: 'Opt in'}
-
+comms_dict = {0: 'Opt out', 1: 'Opt in', '': 'Unknown'}
 
 # Set up table if it doesn't exist
-with _connect_to_db() as db_conn:
-	with db_conn.cursor() as cursor:
-		cursor.execute("CREATE TABLE IF NOT EXISTS user_comms("
-					   "username VARCHAR(25) NOT NULL,"
-					   "comms TINYINT(1) NOT NULL,"
-					   "PRIMARY KEY (username));")
-		db_conn.commit()
-
-
-# Manual table debugging and management
-if __name__ == '__main__':
-	if '--show-table' in argv:
-		with _connect_to_db() as db_conn:
-			with db_conn.cursor() as cursor:
-				cursor.execute("SELECT * FROM user_comms")
-				print(cursor.fetchall())
-
-	if '--reset-table' in argv:
-		with _connect_to_db() as db_conn:
-			with db_conn.cursor() as cursor:
-				cursor.execute("CREATE OR REPLACE TABLE user_comms("
-							   "username VARCHAR(25) NOT NULL,"
-							   "comms TINYINT(1) NOT NULL,"
-							   "PRIMARY KEY (username));")
-				db_conn.commit()
+sql_op("CREATE TABLE IF NOT EXISTS user_comms("
+		"username VARCHAR(25) NOT NULL,"
+		"comms TINYINT(1) NOT NULL,"
+		"PRIMARY KEY (username));", ())
