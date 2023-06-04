@@ -30,7 +30,9 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
 
     stats = server_data.__getattr__(server)
 
-    if details == 'all':
+    if 'exception' in stats:
+        await interaction.edit_original_response(content='Error getting server data')
+    elif details == 'all':
         await interaction.edit_original_response(content=', '.join(
             [value for key, value in stats.items() if key not in {'players'}]))
     elif details == 'players':

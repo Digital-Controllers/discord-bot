@@ -1,4 +1,7 @@
-from tb_db import connect_to_db, sql_op
+from tb_db import sql_func, sql_op
+
+
+__all__ = ['check_usernames', 'log_user']
 
 
 def check_usernames(data_dict: dict) -> dict:
@@ -14,16 +17,16 @@ def check_usernames(data_dict: dict) -> dict:
 		return data_dict
 
 	usernames = data_dict['players']
-
 	player_states = sql_op(["SELECT comms FROM user_comms WHERE username = %s;"] * len(usernames),
 						   [(uname,) for uname in usernames])
-	user_data = [(uname, comms_dict[comms_data[0]]) for uname, comms_data in zip(usernames, player_states)]
+	user_data = [(uname, comms_dict[comms_data]) for uname, comms_data in zip(usernames, player_states)]
 
 	data_dict['players'] = user_data
 	return data_dict
 
 
-def log_user(username: str, state: bool):
+@sql_func
+def log_user(db_conn, cursor, username: str, state: bool):
 	"""
 	Logs a user as opt in or out in database
 	Args:
@@ -32,17 +35,15 @@ def log_user(username: str, state: bool):
 	Returns:
 		None
 	"""
-	with connect_to_db() as db_conn:
-		with db_conn.cursor() as cursor:
-			cursor.execute("SELECT * FROM user_comms WHERE username = %s;", (username,))
-			if cursor.fetchone():
-				cursor.execute("UPDATE user_comms SET comms = %s WHERE username = %s;", (int(state), username))
-			else:
-				cursor.execute("INSERT INTO user_comms(username, comms) VALUES (%s, %s);", (username, int(state)))
-			db_conn.commit()
+	cursor.execute("SELECT * FROM user_comms WHERE username = %s;", (username,))
+	if cursor.fetchone():
+		cursor.execute("UPDATE user_comms SET comms = %s WHERE username = %s;", (int(state), username))
+	else:
+		cursor.execute("INSERT INTO user_comms(username, comms) VALUES (%s, %s);", (username, int(state)))
+	db_conn.commit()
 
 
-comms_dict = {0: 'Opt out', 1: 'Opt in', '': 'Unknown'}
+comms_dict = {(0,): 'Opted out', (1,): 'Opted in', None: 'Unknown'}
 
 # Set up table if it doesn't exist
 sql_op("CREATE TABLE IF NOT EXISTS user_comms("

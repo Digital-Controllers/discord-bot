@@ -1,4 +1,5 @@
 from configs import configs
+from typing import Callable
 import pymysql
 
 
@@ -8,14 +9,23 @@ def connect_to_db() -> pymysql.Connection:
 						   password=configs.DBINFO['password'], database=configs.DBINFO['database'])
 
 
+def sql_func(func: Callable) -> Callable:
+	"""Decorator for functions to be run in sql"""
+	def wrapper(*args, **kwargs):
+		with connect_to_db() as conn:
+			with conn.cursor() as cursor:
+				func(conn, cursor, *args, **kwargs)
+	return wrapper
+
+
 def sql_op(sql_cmd: list[str] | str, args: list[tuple] | tuple,
-		   fetch_all: bool = False)-> list[tuple[tuple]] | list[tuple] | tuple[tuple] | tuple:
+		   fetch_all: bool = False) -> list[tuple[tuple]] | list[tuple] | tuple[tuple] | tuple:
 	"""
 	Takes SQL command(s), passes them to database, and returns output. Intended for simple SQL command(s)
 
 	Args:
-		sql_cmd | Command(s) to be passed to database, given in
-			tuple[str(SQL), tuple(args)] format
+		sql_cmd | Command(s) to be passed to database
+		args | Arguments for sql_cmd(s), accepts empty tuple if none apply
 		fetch_all | Whether the db should fetch one or all values
 	Returns:
 		out | List of tuples or tuple (depending on type of sql_cmd) of value(s) returned from database
@@ -41,3 +51,8 @@ def sql_op(sql_cmd: list[str] | str, args: list[tuple] | tuple,
 					out = cursor.fetchone()
 		conn.commit()
 	return out
+
+sql_op("CREATE TABLE IF NOT EXISTS user_comms("
+	   "username VARCHAR(25) NOT NULL,"
+	   "comms TINYINT(1) NOT NULL,"
+	   "PRIMARY KEY (username));", ())
