@@ -1,6 +1,7 @@
 from datetime import datetime
 from discord import File
 from os import remove
+from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from tb_discord import bot
 import random
@@ -36,9 +37,10 @@ async def on_member_join(member):
         "runway": f"{random.choice(RUNWAYS)}",
         "departure": f"{random.choice(DEPARTURES)}"
     }
-    strip = Image.open("strip_blank.png")
-    font = ImageFont.truetype("consolas.ttf", 40)
-    font_large = ImageFont.truetype("consolas.ttf", 70)
+    assets_path = Path(__file__).parent / '../assets'
+    strip = Image.open(assets_path / 'strip_blank.png')
+    font = ImageFont.truetype(str(assets_path / 'consolas.ttf'), 40)
+    font_large = ImageFont.truetype(str(assets_path / 'consolas.ttf'), 70)
     d = ImageDraw.Draw(strip)
     d.text((67, 101), strip_text["slot"], font=font, fill=(0, 0, 0), anchor="mm")
     d.text((305, 101), strip_text["callsign"], font=font_large, fill=(0, 0, 0), anchor="lm")
