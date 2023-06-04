@@ -120,7 +120,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+configs/.env
 .venv
 env/
 venv/
@@ -160,4 +160,4 @@ cython_debug/
 .idea/
 
 #Custom Files
-config.json
+configs/config.json
