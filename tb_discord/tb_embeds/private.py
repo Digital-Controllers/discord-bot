@@ -53,13 +53,16 @@ class ServersEmbed(_Embed):
 
 	@_tasks.loop(seconds=120)
 	async def update_embed(self):
-		if self.last_time and (delta := time() - self.last_time) > 120:
-			logging.warning('ServersEmbed update timer took %s seconds', delta)
-		update_data = (('gaw', _server_data.gaw), ('pgaw', _server_data.pgaw),
-					   ('lkeu', _server_data.lkeu), ('lkna', _server_data.lkna))
-		for i in range(len(update_data)):
-			server_name, server_info = update_data[i]
-			message = ', '.join([value for key, value in server_info.items() if key not in {'players'}])
-			self.set_field_at(i, name=server_dict[server_name], value=message, inline=False)
-		await self.message.edit(embed=self)
-		self.last_time = time()
+		try:
+			if self.last_time and (delta := time() - self.last_time) > 120:
+				logging.warning('ServersEmbed update timer took %s seconds', delta)
+			update_data = (('gaw', _server_data.gaw), ('pgaw', _server_data.pgaw),
+						   ('lkeu', _server_data.lkeu), ('lkna', _server_data.lkna))
+			for i in range(len(update_data)):
+				server_name, server_info = update_data[i]
+				message = ', '.join([value for key, value in server_info.items() if key not in {'players'}])
+				self.set_field_at(i, name=server_dict[server_name], value=message, inline=False)
+			await self.message.edit(embed=self)
+			self.last_time = time()
+		except Exception as err:
+			logging.error(err)
