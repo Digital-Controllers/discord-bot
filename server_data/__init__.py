@@ -55,7 +55,8 @@ class ServersThread:
 					logging.error('Exception in getting data from %s\n%s', server, err)
 				else:
 					val.val = data
-			_sleep(120 - (_time() - start))
+			if (sleep_time := 120 - (_time() - start)) > 0:
+				_sleep(sleep_time)
 
 	@staticmethod
 	def _get_data(server: _Literal['gaw', 'pgaw', 'lkeu', 'lkna']) -> dict:

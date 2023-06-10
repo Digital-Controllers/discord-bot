@@ -6,7 +6,7 @@ from urllib.request import urlopen
 
 
 def get_hoggit(server: Literal['gaw', 'pgaw']) -> dict:
-    with urlopen(f'https://statecache.hoggitworld.com/{server}') as pipe:
+    with urlopen(f'https://statecache.hoggitworld.com/{server}', timeout=30) as pipe:
         response = pipe.read().decode('utf-8')
     data_dict = loads(response)
 

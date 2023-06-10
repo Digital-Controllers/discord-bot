@@ -5,7 +5,7 @@ from urllib.request import urlopen
 
 
 def get_lk(server: Literal['eu', 'na']) -> dict:
-	with urlopen(f'https://levant.{server}.limakilo.net/status/data') as pipe:
+	with urlopen(f'https://levant.{server}.limakilo.net/status/data', timeout=30) as pipe:
 		response = pipe.read().decode('utf-8')
 	data_dict = loads(response)
 
