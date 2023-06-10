@@ -1,7 +1,7 @@
 from .comm_checker import check_usernames as _check_usernames, log_user
 from .hoggit import get_hoggit as _get_hoggit
 from .limakilo import get_lk as _get_lk
-from time import sleep as _sleep
+from time import sleep as _sleep, time as _time
 from typing import Literal as _Literal
 import threading
 import logging
@@ -46,6 +46,7 @@ class ServersThread:
 
 	def _loop(self):
 		while not self.close:
+			start = _time()
 			for server, val in (('gaw', self.gaw_data), ('pgaw', self.pgaw_data),
 								('lkeu', self.lkeu_data), ('lkna', self.lkna_data)):
 				try:
@@ -54,7 +55,7 @@ class ServersThread:
 					logging.error('Exception in getting data from %s\n%s', server, err)
 				else:
 					val.val = data
-			_sleep(120)
+			_sleep(120 - (_time() - start))
 
 	@staticmethod
 	def _get_data(server: _Literal['gaw', 'pgaw', 'lkeu', 'lkna']) -> dict:
