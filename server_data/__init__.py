@@ -17,6 +17,7 @@ class LockVar:
 	def __init__(self, val):
 		self._val = val
 		self._lock = threading.Lock()
+		self.changed = False
 
 	@property
 	def val(self):
@@ -27,6 +28,7 @@ class LockVar:
 	def val(self, value):
 		with self._lock:
 			self._val = value
+		self.changed = True
 
 	def __bool__(self) -> bool:
 		with self._lock:
@@ -52,6 +54,8 @@ class ServersThread:
 				try:
 					data = self._get_data(server)
 				except Exception as err:
+					if not val.changed:
+						val.val = {'exception': 'Getting data from server failed'}
 					logging.error('Exception in getting data from %s\n%s', server, err)
 				else:
 					val.val = data
