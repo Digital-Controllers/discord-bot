@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from discord.ui import Button, RoleSelect, View
-from discord import app_commands, Message, Interaction, Role, TextChannel, utils
+from discord import app_commands, ButtonStyle, Message, Interaction, Role, TextChannel, utils
 
 
 __all__ = ['command_list']
@@ -23,15 +23,15 @@ class TBRolesSelect(RoleSelect):
 
 
 class RolesView(View):
-	def __init__(self, roles: list[Role], *args, **kwargs):
-		super().__init__(*args, **kwargs)
+	def __init__(self, roles: list[Role]):
+		super().__init__(timeout=None)
 		for role in roles:
 			self.add_item(RoleButton(role))
 
 
 class RoleButton(Button):
-	def __init__(self, role: Role, **kwargs):
-		super().__init__(label=role.name, **kwargs)
+	def __init__(self, role: Role):
+		super().__init__(style=ButtonStyle.primary, label=role.name)
 		self.role = role
 
 	async def callback(self, interaction: Interaction):
