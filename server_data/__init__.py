@@ -1,7 +1,8 @@
 from .comm_checker import check_usernames as _check_usernames, log_user
 from .hoggit import get_hoggit as _get_hoggit
 from .limakilo import get_lk as _get_lk
-from time import sleep as _sleep
+from time import sleep as _sleep, time as _time
+from typing import Literal as _Literal
 import threading
 import logging
 
@@ -16,6 +17,7 @@ class LockVar:
 	def __init__(self, val):
 		self._val = val
 		self._lock = threading.Lock()
+		self.changed = False
 
 	@property
 	def val(self):
@@ -26,6 +28,7 @@ class LockVar:
 	def val(self, value):
 		with self._lock:
 			self._val = value
+		self.changed = True
 
 	def __bool__(self) -> bool:
 		with self._lock:
@@ -45,20 +48,31 @@ class ServersThread:
 
 	def _loop(self):
 		while not self.close:
-			try:
-				gaw = _check_usernames(_get_hoggit('gaw'))
-				pgaw = _check_usernames(_get_hoggit('pgaw'))
-				lkeu = _check_usernames(_get_lk('eu'))
-				lkna = _check_usernames(_get_lk('na'))
-			except Exception as err:
-				logging.exception(err)
-			else:
-				self.gaw_data.val = gaw
-				self.pgaw_data.val = pgaw
-				self.lkeu_data.val = lkeu
-				self.lkna_data.val = lkna
-			finally:
-				_sleep(120)
+			start = _time()
+			for server, val in (('gaw', self.gaw_data), ('pgaw', self.pgaw_data),
+								('lkeu', self.lkeu_data), ('lkna', self.lkna_data)):
+				try:
+					data = self._get_data(server)
+				except Exception as err:
+					if not val.changed:
+						val.val = {'exception': 'Getting data from server failed'}
+					logging.error('Exception in getting data from %s\n%s', server, err)
+				else:
+					val.val = data
+			if (sleep_time := 120 - (_time() - start)) > 0:
+				_sleep(sleep_time)
+
+	@staticmethod
+	def _get_data(server: _Literal['gaw', 'pgaw', 'lkeu', 'lkna']) -> dict:
+		match server:
+			case 'gaw':
+				return _check_usernames(_get_hoggit('gaw'))
+			case 'pgaw':
+				return _check_usernames(_get_hoggit('pgaw'))
+			case 'lkeu':
+				return _check_usernames(_get_lk('eu'))
+			case 'lkna':
+				return _check_usernames(_get_lk('na'))
 
 
 if __name__ != '__main__':

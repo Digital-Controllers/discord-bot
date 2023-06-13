@@ -1,11 +1,10 @@
+import logging
+logging.basicConfig(filename='runtime.log', encoding='utf-8', level=logging.INFO)
+
 from configs import configs
 from datetime import datetime
 from tb_discord import bot
-import logging
 
-# =======UTILITIES=======
-
-logging.basicConfig(filename='runtime.log', encoding='utf-8', level=logging.INFO)
 
 # =======INIT=======
 
