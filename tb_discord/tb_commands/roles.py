@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
 from discord.ui import Button, RoleSelect, View
 from discord import app_commands, ButtonStyle, Message, Interaction, Role, TextChannel, utils
+from tb_db import sql_op
 
-
-__all__ = ['command_list']
+__all__ = ['command_list', 'RolesView']
 
 
 class RoleChoiceView(View):
@@ -44,6 +44,7 @@ class RoleButton(Button):
 
 @app_commands.command()
 async def create_reaction_role(interaction: Interaction, channel: TextChannel, message_id: int = None):
+	# Get original message
 	if message_id:
 		message: Message = await channel.fetch_message(message_id)
 	else:
@@ -53,10 +54,16 @@ async def create_reaction_role(interaction: Interaction, channel: TextChannel, m
 			await interaction.response.send_message(f'Your message in {channel.name} could not be found')
 			return
 
+	# Set up roles
 	choice_view = RoleChoiceView(message)
 	await interaction.response.send_message(view=choice_view, ephemeral=True)
 	await choice_view.wait()
-	out_message = await channel.send(content=message.content, embeds=message.embeds, view=RolesView(choice_view.roles.values))
+	roles = choice_view.roles.values
+
+	# Send role message, log to db, and clean up
+	out_message = channel.send(message.content, embeds=message.embeds, view=RolesView(roles))
+	sql_op('INSERT INTO role_messages(message_id, channel_id, roles) VALUES(%s, %s, %s);',
+		   (out_message.id, out_message.channel.id, ''.join([str(value.id).zfill(20) for value in roles])))
 	await message.delete()
 	await interaction.delete_original_response()
 
