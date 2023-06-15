@@ -4,7 +4,12 @@ from discord import Intents
 
 __all__ = ['bot']
 
-bot = Bot(command_prefix='t?', intents=Intents.all())
+intents = Intents.none()
+intents.guilds = True
+intents.members = True
+intents.guild_messages = True
+
+bot = Bot(command_prefix='t?', intents=intents)
 bot.server_embed = None
 
 

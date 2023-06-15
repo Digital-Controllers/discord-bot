@@ -1,6 +1,6 @@
 """Towerbot commands dealing with info from external sources"""
 from discord import app_commands, Interaction
-from tb_discord.tb_embeds.private import PlayersEmbed
+from tb_discord.tb_ui import PlayersEmbed
 from urllib.request import urlopen
 import server_data
 
