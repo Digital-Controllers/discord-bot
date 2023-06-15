@@ -6,6 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 from sys import argv
 from tb_db import sql_op
 from tb_discord import bot
+from tb_discord.data_structures import RolesMessage, role_messages as active_role_messages
 from tb_discord.tb_commands.roles import RolesView
 import random
 import re
@@ -40,9 +41,8 @@ async def on_ready():
 				for role_id in [int(''.join(i)) for i in zip(*[iter(view_data[2])]*20)]:
 					roles.append(channel.guild.get_role(role_id))
 
-				await message.edit(view=RolesView(roles))
-
-				print(view_data[0], view_data[1], [''.join(i) for i in zip(*[iter(view_data[2])]*20)])
+				message_data = RolesMessage(await message.edit(view=RolesView(roles)), roles)
+				active_role_messages.append(message_data)
 
 
 @bot.event

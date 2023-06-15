@@ -2,8 +2,12 @@ from datetime import datetime, timedelta
 from discord.ui import Button, RoleSelect, View
 from discord import app_commands, ButtonStyle, Message, Interaction, Role, TextChannel, utils
 from tb_db import sql_op
+from tb_discord.tb_embeds.public import RoleButtonEmbed
+from tb_discord.data_structures import RolesMessage, role_messages
+
 
 __all__ = ['command_list', 'RolesView']
+
 
 
 class RoleChoiceView(View):
@@ -43,7 +47,7 @@ class RoleButton(Button):
 
 
 @app_commands.command()
-async def create_reaction_role(interaction: Interaction, channel: TextChannel, message_id: int = None):
+async def create_role_buttons(interaction: Interaction, channel: TextChannel, message_id: int = None):
 	# Get original message
 	if message_id:
 		message: Message = await channel.fetch_message(message_id)
@@ -61,11 +65,18 @@ async def create_reaction_role(interaction: Interaction, channel: TextChannel, m
 	roles = choice_view.roles.values
 
 	# Send role message, log to db, and clean up
-	out_message = channel.send(message.content, embeds=message.embeds, view=RolesView(roles))
+	out_message = await channel.send(message.content, embeds=message.embeds, view=RolesView(roles))
 	sql_op('INSERT INTO role_messages(message_id, channel_id, roles) VALUES(%s, %s, %s);',
 		   (out_message.id, out_message.channel.id, ''.join([str(value.id).zfill(20) for value in roles])))
+	role_messages.append(RolesMessage(out_message, roles))
 	await message.delete()
 	await interaction.delete_original_response()
 
 
-command_list = [create_reaction_role]
+@app_commands.command()
+async def list_role_buttons(interaction: Interaction):
+	guild_messages = filter(lambda x: x.message.guild.id == interaction.guild.id, role_messages)
+	await interaction.response.send_message(embed=RoleButtonEmbed(guild_messages))
+
+
+command_list = [create_role_buttons, list_role_buttons]
