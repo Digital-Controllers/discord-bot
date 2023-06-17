@@ -1,5 +1,6 @@
 from datetime import datetime
 from discord import File
+from discord.errors import NotFound
 from os import remove
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
@@ -33,8 +34,12 @@ async def on_ready():
 		if '-c' not in argv:
 			role_messages = sql_op('SELECT * FROM role_messages', (), fetch_all=True)
 			for view_data in role_messages:
-				channel = bot.get_channel(int(view_data[1]))
-				message = await channel.fetch_message(int(view_data[0]))
+				try:
+					channel = bot.get_channel(int(view_data[1]))
+					message = await channel.fetch_message(int(view_data[0]))
+				except NotFound:
+					sql_op('DELETE FROM role_messages WHERE message_id = %s', (view_data[0],))
+					continue
 
 				# Could do this in a list comprehension, but it'd be extremely unreadable
 				roles = []
