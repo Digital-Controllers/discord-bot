@@ -1,8 +1,11 @@
 from discord import ButtonStyle, Embed, Interaction, Message, Role
 from discord.ui import Button, RoleSelect, View
+from tb_db import sql_op
+from tb_discord.data_structures import RolesMessage, role_messages
+import logging
 
 
-__all__ = ['RoleButtonEmbed', 'RoleChoiceView', 'RolesView']
+__all__ = ['RoleButtonEmbed', 'RoleChoiceView', 'RolesView', 'RoleDeleteView']
 
 
 class EventEmbed(Embed):
@@ -14,21 +17,33 @@ class EventEmbed(Embed):
 
 
 class RoleButtonEmbed(Embed):
-	def __init__(self, messages: filter):
+	def __init__(self, messages: tuple):
 		super().__init__(title='Current role buttons', color=0x3EBBE7)
 		self.set_author(name='Digital Controllers')
 		self.set_thumbnail(url="https://raw.githubusercontent.com/Digital-Controllers/website/main/docs/assets/logo.png")
 
 		lines = []
-		for message in messages:
-			if len(desc_str := message.message.content) > 25:
-				desc_str = desc_str[:18] + '...'
+		for message, i in zip(messages, range(len(messages))):
+			desc_str = f'{i + 1}) ' + message.message.content
+			if len(desc_str) > 25:
+				desc_str = desc_str[:22] + '...'
 			lines.append(desc_str + '\n> ' + '\n> '.join([role.name for role in message.roles]))
 
 		if not lines:
 			lines = ['No role messages']
 
 		self.add_field(name='Role messages:', value='\n\n'.join(lines))
+
+
+class RoleDeleteView(View):
+	def __init__(self, messages: tuple[RolesMessage]):
+		super().__init__(timeout=120)
+		if len(messages) > 25:
+			logging.warning('User at guild %s (id %s) has more than 25 role messages',
+			                messages[0].message.guild.name, messages[0].message.guild.id)
+
+		for message, i in zip(messages, range(len(messages))):
+			self.add_item(RoleDeleteButton(message, i))
 
 
 class RoleChoiceView(View):
@@ -65,3 +80,17 @@ class RoleButton(Button):
 		else:
 			await interaction.user.add_roles(self.role)
 		await interaction.response.defer()
+
+
+class RoleDeleteButton(Button):
+	def __init__(self, role_msg: RolesMessage, ind: int):
+		super().__init__(style=ButtonStyle.danger, label=f'Msg {ind + 1}', row=ind // 5)
+		self.message = role_msg
+
+	async def callback(self, interaction: Interaction):
+		await self.message.message.delete()
+		self.disabled = True
+		await interaction.response.defer()
+		role_messages.remove(self.message)
+		sql_op('DELETE FROM role_messages WHERE message_id = %s', (self.message.message.id,))
+

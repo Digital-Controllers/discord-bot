@@ -1,4 +1,5 @@
 """Holds shared data and data structures for tb_discord to prevent import chains"""
+from collections import deque
 from discord import Message, Role
 
 
@@ -9,4 +10,4 @@ class RolesMessage:
 		self.roles = roles
 
 
-role_messages: list[RolesMessage] = []
+role_messages: deque[RolesMessage] = deque()
