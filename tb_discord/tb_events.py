@@ -8,7 +8,8 @@ from sys import argv
 from tb_db import sql_op
 from tb_discord import bot
 from tb_discord.data_structures import RolesMessage, role_messages as active_role_messages
-from tb_discord.tb_commands.roles import RolesView
+from tb_discord.tb_ui import RolesView
+import logging
 import random
 import re
 
@@ -39,6 +40,7 @@ async def on_ready():
 					message = await channel.fetch_message(int(view_data[0]))
 				except NotFound:
 					sql_op('DELETE FROM role_messages WHERE message_id = %s', (view_data[0],))
+					logging.warning(f'Message with ID {view_data[0]} in channel {view_data[1]} could not be found.')
 					continue
 
 				# Could do this in a list comprehension, but it'd be extremely unreadable
