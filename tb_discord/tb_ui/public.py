@@ -41,6 +41,7 @@ class RoleDeleteView(View):
 		if len(messages) > 25:
 			logging.warning('User at guild %s (id %s) has more than 25 role messages',
 			                messages[0].message.guild.name, messages[0].message.guild.id)
+			messages = messages[:25]
 
 		for message, i in zip(messages, range(len(messages))):
 			self.add_item(RoleDeleteButton(message, i))
