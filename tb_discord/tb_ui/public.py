@@ -1,4 +1,5 @@
 from discord import ButtonStyle, Embed, Interaction, Message, Role
+from discord.errors import NotFound
 from discord.ui import Button, RoleSelect, View
 from tb_db import sql_op
 from tb_discord.data_structures import RolesMessage, role_messages
@@ -89,9 +90,18 @@ class RoleDeleteButton(Button):
 		self.message = role_msg
 
 	async def callback(self, interaction: Interaction):
-		await self.message.message.delete()
-		self.disabled = True
-		await interaction.response.defer()
-		role_messages.remove(self.message)
-		sql_op('DELETE FROM role_messages WHERE message_id = %s', (self.message.message.id,))
+		try:
+			await self.message.message.delete()
+		except NotFound:
+			await interaction.response.send_message('Could not find requested message', ephemeral=True)
+		else:
+			await interaction.response.defer()
+
+		try:
+			role_messages.remove(self.message)
+		except ValueError:
+			# Catches repeat uses of the same button throwing an error
+			pass
+		else:
+			sql_op('DELETE FROM role_messages WHERE message_id = %s', (self.message.message.id,))
 
