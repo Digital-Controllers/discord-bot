@@ -1,4 +1,5 @@
 from configs import configs
+from sys import argv
 from typing import Callable
 import pymysql
 
@@ -52,7 +53,26 @@ def sql_op(sql_cmd: list[str] | str, args: list[tuple] | tuple,
 		conn.commit()
 	return out
 
-sql_op("CREATE TABLE IF NOT EXISTS user_comms("
-	   "username VARCHAR(25) NOT NULL,"
-	   "comms TINYINT(1) NOT NULL,"
-	   "PRIMARY KEY (username));", ())
+
+if '-r' in argv:
+	sql_op(["CREATE OR REPLACE TABLE user_comms("
+				"username VARCHAR(25) NOT NULL,"
+				"comms TINYINT(1) NOT NULL,"
+				"PRIMARY KEY (username));",
+			"CREATE OR REPLACE TABLE role_messages("
+				"message_id BIGINT UNSIGNED NOT NULL,"
+				"channel_id BIGINT UNSIGNED NOT NULL,"
+				"roles TINYTEXT NOT NULL,"
+				"PRIMARY KEY (message_id));"], [(), ()])
+	print(sql_op(['SELECT * FROM user_comms;', 'SELECT * FROM role_messages;'], [(), ()], fetch_all=True))
+else:
+	sql_op(["CREATE TABLE IF NOT EXISTS user_comms("
+				"username VARCHAR(25) NOT NULL,"
+				"comms TINYINT(1) NOT NULL,"
+				"PRIMARY KEY (username));",
+			"CREATE TABLE IF NOT EXISTS role_messages("
+				"message_id BIGINT UNSIGNED NOT NULL,"
+				"channel_id BIGINT UNSIGNED NOT NULL,"
+				"roles TINYTEXT NOT NULL,"
+				"PRIMARY KEY (message_id));"], [(), ()])
+
