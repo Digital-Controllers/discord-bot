@@ -1,7 +1,7 @@
 """Towerbot commands dealing with bot management"""
 from configs import configs
 from discord import app_commands, Interaction
-from tb_discord.tb_embeds.private import ServersEmbed
+from tb_discord.tb_ui import ServersEmbed
 from tb_discord import bot
 import logging
 
