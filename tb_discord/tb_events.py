@@ -38,10 +38,14 @@ async def on_ready():
 			for view_data in role_messages:
 				try:
 					channel = bot.get_channel(int(view_data[1]))
+					assert channel is not None
 					message = await channel.fetch_message(int(view_data[0]))
 				except NotFound:
 					sql_op('DELETE FROM persistent_messages WHERE message_id = %s', (view_data[0],))
 					logging.warning(f'Message of type {view_data[2]} with ID {view_data[0]} in channel {view_data[1]} could not be found.')
+					continue
+				except AssertionError:
+					sql_op('DELETE FROM persistent_messages WHERE message_id = %s', (view_data[0],))
 					continue
 
 				await message_types[view_data[2]](message, channel, view_data[3])

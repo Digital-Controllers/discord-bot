@@ -1,6 +1,7 @@
 """Module for ui elements based around DCS server data"""
 from discord import Embed, Message, TextChannel
 from discord.abc import GuildChannel
+from discord.errors import NotFound
 from discord.ext import tasks
 from tb_db import sql_op
 from time import time
@@ -69,8 +70,7 @@ class ServersEmbed(Embed):
 		self.last_time = None
 
 	async def delete(self):
-		sql_op('DELETE FROM persistent_messages WHERE message_id = %s',
-		       (self.message.id,))
+		sql_op('DELETE FROM persistent_messages WHERE message_id = %s', (self.message.id,))
 		await self.message.delete()
 		ServersEmbed.active_embed = None
 
@@ -87,5 +87,7 @@ class ServersEmbed(Embed):
 				self.set_field_at(i, name=server_dict[server_name], value=message, inline=False)
 			await self.message.edit(embed=self)
 			self.last_time = time()
+		except NotFound:
+			await self.delete()
 		except Exception as err:
 			logging.error(err)

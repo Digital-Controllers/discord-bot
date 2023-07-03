@@ -38,7 +38,7 @@ async def new_servers_embed(interaction: Interaction, channel: TextChannel):
         try:
             await active.message.channel.fetch_message(active.message.id)   # Checks if listed embed still exists
         except NotFound:
-            ServersEmbed.active_embed.delete()
+            await ServersEmbed.active_embed.delete()
             await ServersEmbed.create(channel)
             await interaction.followup.send("New embed created.", ephemeral=True)
         else:
@@ -71,7 +71,7 @@ async def update_embed(interaction: Interaction):
     except AssertionError:
         await interaction.response.send_message("Embed could not be found.", ephemeral=True)
     except NotFound:
-        ServersEmbed.active_embed.delete()
+        await ServersEmbed.active_embed.delete()
         await interaction.response.send_message("Embed could not be found.", ephemeral=True)
     else:
         await interaction.response.send_message("Embed update sequence has begun.", ephemeral=True)
