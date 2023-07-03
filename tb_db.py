@@ -56,23 +56,21 @@ def sql_op(sql_cmd: list[str] | str, args: list[tuple] | tuple,
 
 if '-r' in argv:
 	sql_op(["CREATE OR REPLACE TABLE user_comms("
-				"username VARCHAR(25) NOT NULL,"
-				"comms TINYINT(1) NOT NULL,"
-				"PRIMARY KEY (username));",
-			"CREATE OR REPLACE TABLE role_messages("
-				"message_id BIGINT UNSIGNED NOT NULL,"
-				"channel_id BIGINT UNSIGNED NOT NULL,"
-				"roles TINYTEXT NOT NULL,"
-				"PRIMARY KEY (message_id));"], [(), ()])
-	print(sql_op(['SELECT * FROM user_comms;', 'SELECT * FROM role_messages;'], [(), ()], fetch_all=True))
+				"username VARCHAR(25) PRIMARY KEY,"
+				"comms TINYINT(1) NOT NULL);",
+	        "CREATE OR REPLACE TABLE persistent_messages("
+	            "message_id BIGINT UNSIGNED PRIMARY KEY,"
+	            "channel_id BIGINT UNSIGNED NOT NULL,"
+	            "type TINYINT NOT NULL,"
+	            "data TEXT);"], [(), ()])
+	print(sql_op(['SELECT * FROM user_comms;', 'SELECT * FROM persistent_messages;'], [(), ()], fetch_all=True))
 else:
 	sql_op(["CREATE TABLE IF NOT EXISTS user_comms("
-				"username VARCHAR(25) NOT NULL,"
-				"comms TINYINT(1) NOT NULL,"
-				"PRIMARY KEY (username));",
-			"CREATE TABLE IF NOT EXISTS role_messages("
-				"message_id BIGINT UNSIGNED NOT NULL,"
-				"channel_id BIGINT UNSIGNED NOT NULL,"
-				"roles TINYTEXT NOT NULL,"
-				"PRIMARY KEY (message_id));"], [(), ()])
+				"username VARCHAR(25) PRIMARY KEY,"
+				"comms TINYINT(1) NOT NULL);",
+			"CREATE TABLE IF NOT EXISTS persistent_messages("
+	            "message_id BIGINT UNSIGNED PRIMARY KEY,"
+	            "channel_id BIGINT UNSIGNED NOT NULL,"
+	            "type TINYINT NOT NULL,"
+	            "data TEXT);"], [(), ()])
 

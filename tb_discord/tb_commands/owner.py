@@ -1,6 +1,7 @@
 """Towerbot commands dealing with bot management"""
 from configs import configs
-from discord import app_commands, Interaction
+from discord import app_commands, Interaction, TextChannel
+from discord.errors import NotFound
 from tb_discord.tb_ui import ServersEmbed
 from tb_discord import bot
 import logging
@@ -31,6 +32,24 @@ def check_is_owner():
 
 @app_commands.command()
 @check_is_owner()
+async def new_servers_embed(interaction: Interaction, channel: TextChannel):
+    await interaction.response.defer(thinking=True)
+    if active := ServersEmbed.active_embed:
+        try:
+            await active.message.channel.fetch_message(active.message.id)   # Checks if listed embed still exists
+        except NotFound:
+            ServersEmbed.active_embed.delete()
+            await ServersEmbed.create(channel)
+            await interaction.followup.send("New embed created.", ephemeral=True)
+        else:
+            await interaction.followup.send('There is already an active embed', ephemeral=True)
+    else:
+        await ServersEmbed.create(channel)
+        await interaction.followup.send("New embed created.", ephemeral=True)
+
+
+@app_commands.command()
+@check_is_owner()
 async def ping(interaction: Interaction):
     latency = str(bot.latency)[:-13]
     await interaction.response.send_message(f"Pong! Ping is {latency}s.")
@@ -46,17 +65,17 @@ async def sync_command_tree(interaction: Interaction):
 @app_commands.command()
 @check_is_owner()
 async def update_embed(interaction: Interaction):
-    if bot.server_embed:
-        await interaction.response.send_message("Embed update sequence has begun.", ephemeral=True)
-        await bot.server_embed.update_embed()
+    try:
+        assert (active := ServersEmbed.active_embed)    # Checks if there is active embed
+        await active.message.channel.fetch_message(active.message.id)   # Check if listed embed actually exists
+    except AssertionError:
+        await interaction.response.send_message("Embed could not be found.", ephemeral=True)
+    except NotFound:
+        ServersEmbed.active_embed.delete()
+        await interaction.response.send_message("Embed could not be found.", ephemeral=True)
     else:
-        await interaction.response.send_message("Embed could not be found, creating new embed.", ephemeral=True)
-        try:
-            bot.server_embed = await ServersEmbed.create(bot.get_channel(configs.dc_embed_channel_id))
-            await interaction.followup.send("New embed created.", ephemeral=True)
-        except AssertionError as err:
-            await interaction.followup.send(f"Error trying to create embed.\nError text: {err}", ephemeral=True)
-            logging.error('Bot failed to create embed; error text: %s', str(err))
+        await interaction.response.send_message("Embed update sequence has begun.", ephemeral=True)
+        await active.update_embed()
 
 
-command_list = [sync_command_tree, update_embed]
+command_list = [new_servers_embed, ping, sync_command_tree, update_embed]

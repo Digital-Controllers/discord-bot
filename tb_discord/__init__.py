@@ -10,7 +10,6 @@ intents.members = True
 intents.guild_messages = True
 
 bot = Bot(command_prefix='t?', intents=intents)
-bot.server_embed = None
 
 
 # Imported below top to allow for bot to init
