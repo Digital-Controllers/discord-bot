@@ -44,9 +44,3 @@ def log_user(db_conn, cursor, username: str, state: bool):
 
 
 comms_dict = {(0,): 'Opted out', (1,): 'Opted in', None: 'Unknown'}
-
-# Set up table if it doesn't exist
-sql_op("CREATE TABLE IF NOT EXISTS user_comms("
-		"username VARCHAR(25) NOT NULL,"
-		"comms TINYINT(1) NOT NULL,"
-		"PRIMARY KEY (username));", ())

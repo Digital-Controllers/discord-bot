@@ -4,7 +4,6 @@ from discord import app_commands, Interaction, TextChannel
 from discord.errors import NotFound
 from tb_discord.tb_ui import ServersEmbed
 from tb_discord import bot
-import logging
 
 
 __all__ = ['command_list']

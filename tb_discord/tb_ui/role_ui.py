@@ -124,5 +124,5 @@ class RoleDeleteButton(Button):
 			await interaction.response.send_message('Could not find requested message', ephemeral=True)
 		else:
 			RolesMessage.role_messages.remove(self.message)
-			sql_op('DELETE FROM role_messages WHERE message_id = %s', (self.message.message.id,))
+			sql_op('DELETE FROM persistent_messages WHERE message_id = %s', (self.message.message.id,))
 			await interaction.response.defer()
