@@ -3,7 +3,6 @@ from discord import app_commands, Message, Interaction, TextChannel, utils
 from tb_db import sql_op
 from tb_discord.tb_ui import RoleButtonEmbed, RolesView, RoleChoiceView, RoleDeleteView
 from tb_discord.data_structures import RolesMessage, role_messages
-import logging
 
 
 __all__ = ['command_list']
@@ -11,9 +10,9 @@ __all__ = ['command_list']
 
 @app_commands.command()
 async def create_role_buttons(interaction: Interaction, channel: TextChannel, message_id: str = None):
-	message_id = int(message_id)
 	# Get original message
 	if message_id:
+		message_id = int(message_id)
 		message: Message = await channel.fetch_message(message_id)
 	else:
 		message = await utils.get(
