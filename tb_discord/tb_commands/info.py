@@ -5,7 +5,7 @@ from urllib.request import urlopen
 import server_data
 
 
-__all__ = ['command_list']
+__all__ = ["command_list"]
 
 
 @app_commands.command()
@@ -16,7 +16,7 @@ __all__ = ['command_list']
     app_commands.Choice(name="Lima Kilo - Flashpoint Levant - EU", value="lkeu"),
     app_commands.Choice(name="Lima Kilo - Flashpoint Levant - NA", value="lkna")
 ])
-async def info(interaction: Interaction, name: app_commands.Choice[str], details: str = 'all'):
+async def info(interaction: Interaction, name: app_commands.Choice[str], details: str = "all"):
     """
     Gets player count info for designated servers
     Args:
@@ -26,17 +26,17 @@ async def info(interaction: Interaction, name: app_commands.Choice[str], details
     server = name.value  # take the actual string value from the input Choice
     details = details.lower()
 
-    await interaction.response.send_message('Getting server data...')
+    await interaction.response.send_message("Getting server data...")
 
     stats = server_data.__getattr__(server)
 
-    if 'exception' in stats:
-        await interaction.edit_original_response(content='Error getting server data')
-    elif details == 'all':
-        await interaction.edit_original_response(content=', '.join(
-            [value for key, value in stats.items() if key not in {'players'}]))
-    elif details == 'players':
-        await interaction.edit_original_response(content='', embed=PlayersEmbed(server, stats['players']))
+    if "exception" in stats:
+        await interaction.edit_original_response(content="Error getting server data")
+    elif details == "all":
+        await interaction.edit_original_response(content=", ".join(
+            [value for key, value in stats.items() if key not in {"players"}]))
+    elif details == "players":
+        await interaction.edit_original_response(content="", embed=PlayersEmbed(server, stats["players"]))
     else:
         try:
             await interaction.edit_original_response(content=stats[details])

@@ -5,7 +5,7 @@ from tb_discord.tb_ui import RoleButtonEmbed, RolesView, RoleChoiceView, RoleDel
 from tb_discord.data_structures import RolesMessage, role_messages
 
 
-__all__ = ['command_list']
+__all__ = ["command_list"]
 
 
 @app_commands.command()
@@ -18,7 +18,7 @@ async def create_role_buttons(interaction: Interaction, channel: TextChannel, me
 		message = await utils.get(
 			channel.history(limit=50, after=datetime.now() - timedelta(hours=1), oldest_first=False), author=interaction.user)
 		if not message:
-			await interaction.response.send_message(f'Your message in {channel.name} could not be found')
+			await interaction.response.send_message(f"Your message in {channel.name} could not be found")
 			return
 
 	# Set up roles
@@ -29,8 +29,8 @@ async def create_role_buttons(interaction: Interaction, channel: TextChannel, me
 
 	# Send role message, log to db, and clean up
 	out_message = await channel.send(message.content, embeds=message.embeds, view=RolesView(roles))
-	sql_op('INSERT INTO role_messages(message_id, channel_id, roles) VALUES(%s, %s, %s);',
-		   (out_message.id, out_message.channel.id, ''.join([str(value.id).zfill(20) for value in roles])))
+	sql_op("INSERT INTO role_messages(message_id, channel_id, roles) VALUES(%s, %s, %s);",
+		   (out_message.id, out_message.channel.id, "".join([str(value.id).zfill(20) for value in roles])))
 	role_messages.append(RolesMessage(out_message, roles))
 	await message.delete()
 	await interaction.delete_original_response()
