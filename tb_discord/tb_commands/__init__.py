@@ -5,7 +5,7 @@ import tb_discord.tb_commands.owner
 import tb_discord.tb_commands.roles
 
 
-__all__ = ['command_list']
+__all__ = ["command_list"]
 
 
 command_list = info.command_list + mission_planning.command_list + owner.command_list + roles.command_list

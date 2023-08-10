@@ -1,7 +1,6 @@
 from tb_db import sql_func, sql_op
 
-
-__all__ = ['check_usernames', 'log_user']
+__all__ = ["check_usernames", "log_user"]
 
 
 def check_usernames(data_dict: dict) -> dict:
@@ -13,15 +12,15 @@ def check_usernames(data_dict: dict) -> dict:
 		data_dict | dict | Data dictionary updated with database data
 	"""
 	# Catches any server exceptions without wasting bandwidth and slowing processing
-	if 'exception' in data_dict.keys():
+	if "exception" in data_dict.keys():
 		return data_dict
 
-	usernames = data_dict['players']
+	usernames = data_dict["players"]
 	player_states = sql_op(["SELECT comms FROM user_comms WHERE username = %s;"] * len(usernames),
 						   [(uname,) for uname in usernames])
 	user_data = [(uname, comms_dict[comms_data]) for uname, comms_data in zip(usernames, player_states)]
 
-	data_dict['players'] = user_data
+	data_dict["players"] = user_data
 	return data_dict
 
 
@@ -43,10 +42,10 @@ def log_user(db_conn, cursor, username: str, state: bool):
 	db_conn.commit()
 
 
-comms_dict = {(0,): 'Opted out', (1,): 'Opted in', None: 'Unknown'}
+comms_dict = {(0,): "Opted out", (1,): "Opted in", None: "Unknown"}
 
 # Set up table if it doesn't exist
 sql_op("CREATE TABLE IF NOT EXISTS user_comms("
-		"username VARCHAR(25) NOT NULL,"
-		"comms TINYINT(1) NOT NULL,"
-		"PRIMARY KEY (username));", ())
+	   "username VARCHAR(25) NOT NULL,"
+	   "comms TINYINT(1) NOT NULL,"
+	   "PRIMARY KEY (username));", ())
