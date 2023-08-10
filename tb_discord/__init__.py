@@ -2,14 +2,14 @@
 from discord.ext.commands import Bot
 from discord import Intents
 
-__all__ = ['bot']
+__all__ = ["bot"]
 
 intents = Intents.none()
 intents.guilds = True
 intents.members = True
 intents.guild_messages = True
 
-bot = Bot(command_prefix='t?', intents=intents)
+bot = Bot(command_prefix="t?", intents=intents)
 bot.server_embed = None
 
 

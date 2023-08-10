@@ -6,7 +6,7 @@ from tb_discord import bot
 import logging
 
 
-__all__ = ['command_list']
+__all__ = ["command_list"]
 
 
 def check_is_owner():
@@ -56,7 +56,7 @@ async def update_embed(interaction: Interaction):
             await interaction.followup.send("New embed created.", ephemeral=True)
         except AssertionError as err:
             await interaction.followup.send(f"Error trying to create embed.\nError text: {err}", ephemeral=True)
-            logging.error('Bot failed to create embed; error text: %s', str(err))
+            logging.error("Bot failed to create embed; error text: %s", str(err))
 
 
 command_list = [sync_command_tree, update_embed]

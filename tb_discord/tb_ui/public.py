@@ -5,7 +5,7 @@ from tb_db import sql_op
 from tb_discord.data_structures import RolesMessage, role_messages
 import logging
 
-__all__ = ['RoleButtonEmbed', 'RoleChoiceView', 'RolesView', 'RoleDeleteView']
+__all__ = ["RoleButtonEmbed", "RoleChoiceView", "RolesView", "RoleDeleteView"]
 
 
 class EventEmbed(Embed):
@@ -18,29 +18,29 @@ class EventEmbed(Embed):
 
 class RoleButtonEmbed(Embed):
     def __init__(self, messages: tuple):
-        super().__init__(title='Current role buttons', color=0x3EBBE7)
-        self.set_author(name='Digital Controllers')
+        super().__init__(title="Current role buttons", color=0x3EBBE7)
+        self.set_author(name="Digital Controllers")
         self.set_thumbnail(
             url="https://raw.githubusercontent.com/Digital-Controllers/website/main/docs/assets/logo.png")
 
         lines = []
         for message, i in zip(messages, range(len(messages))):
-            desc_str = f'{i + 1}) ' + message.message.content
+            desc_str = f"{i + 1}) " + message.message.content
             if len(desc_str) > 25:
-                desc_str = desc_str[:22] + '...'
-            lines.append(desc_str + '\n> ' + '\n> '.join([role.name for role in message.roles]))
+                desc_str = desc_str[:22] + "..."
+            lines.append(desc_str + "\n> " + "\n> ".join([role.name for role in message.roles]))
 
         if not lines:
-            lines = ['No role messages']
+            lines = ["No role messages"]
 
-        self.add_field(name='Role messages:', value='\n\n'.join(lines))
+        self.add_field(name="Role messages:", value="\n\n".join(lines))
 
 
 class RoleDeleteView(View):
     def __init__(self, messages: tuple[RolesMessage]):
         super().__init__(timeout=120)
         if len(messages) > 25:
-            logging.warning('User at guild %s (id %s) has more than 25 role messages',
+            logging.warning("User at guild %s (id %s) has more than 25 role messages",
                             messages[0].message.guild.name, messages[0].message.guild.id)
             messages = messages[:25]
 
@@ -86,14 +86,14 @@ class RoleButton(Button):
 
 class RoleDeleteButton(Button):
     def __init__(self, role_msg: RolesMessage, ind: int):
-        super().__init__(style=ButtonStyle.danger, label=f'Msg {ind + 1}', row=ind // 5)
+        super().__init__(style=ButtonStyle.danger, label=f"Msg {ind + 1}", row=ind // 5)
         self.message = role_msg
 
     async def callback(self, interaction: Interaction):
         try:
             await self.message.message.delete()
         except NotFound:
-            await interaction.response.send_message('Could not find requested message', ephemeral=True)
+            await interaction.response.send_message("Could not find requested message", ephemeral=True)
         else:
             await interaction.response.defer()
 
@@ -103,4 +103,4 @@ class RoleDeleteButton(Button):
             # Catches repeat uses of the same button throwing an error
             pass
         else:
-            sql_op('DELETE FROM role_messages WHERE message_id = %s', (self.message.message.id,))
+            sql_op("DELETE FROM role_messages WHERE message_id = %s", (self.message.message.id,))

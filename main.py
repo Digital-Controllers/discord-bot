@@ -10,6 +10,6 @@ from tb_discord import bot
 
 utc_start = datetime.utcnow()
 print(f"Started at {str(utc_start)[:-16]}")
-logging.info("Started on %s", utc_start.strftime('%d-%m-%Y at %H:%M:%S UTC%z'))
+logging.info("Started on %s", utc_start.strftime("%d-%m-%Y at %H:%M:%S UTC%z"))
 
 bot.run(configs.TOKEN)
