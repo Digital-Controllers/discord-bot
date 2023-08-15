@@ -28,25 +28,25 @@ DEPARTURES = ["GAM1D", "PAL1D", "ARN1D", "TIB1D", "SOR1D", "RUD1D", "AGI1D", "DI
 async def on_ready():
     print(f"{bot.user} has connected to Discord!")
 
-	global started
-	if not started:
-		started = True
-		if '-c' not in argv:
-			role_messages = sql_op('SELECT * FROM persistent_messages', (), fetch_all=True)
-			for view_data in role_messages:
-				try:
-					channel = bot.get_channel(int(view_data[1]))
-					assert channel is not None
-					message = await channel.fetch_message(int(view_data[0]))
-				except NotFound:
-					sql_op('DELETE FROM persistent_messages WHERE message_id = %s', (view_data[0],))
-					logging.warning(f'Message of type {view_data[2]} with ID {view_data[0]} in channel {view_data[1]} could not be found.')
-					continue
-				except AssertionError:
-					sql_op('DELETE FROM persistent_messages WHERE message_id = %s', (view_data[0],))
-					continue
+    global started
+    if not started:
+        started = True
+        if '-c' not in argv:
+            role_messages = sql_op('SELECT * FROM persistent_messages', (), fetch_all=True)
+            for view_data in role_messages:
+                try:
+                    channel = bot.get_channel(int(view_data[1]))
+                    assert channel is not None
+                    message = await channel.fetch_message(int(view_data[0]))
+                except NotFound:
+                    sql_op('DELETE FROM persistent_messages WHERE message_id = %s', (view_data[0],))
+                    logging.warning(f'Message of type {view_data[2]} with ID {view_data[0]} in channel {view_data[1]} could not be found.')
+                    continue
+                except AssertionError:
+                    sql_op('DELETE FROM persistent_messages WHERE message_id = %s', (view_data[0],))
+                    continue
 
-				await message_types[view_data[2]](message, channel, view_data[3])
+                await message_types[view_data[2]](message, channel, view_data[3])
 
 
 @bot.event
