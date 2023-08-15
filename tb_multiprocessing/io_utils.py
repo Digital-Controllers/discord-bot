@@ -104,7 +104,10 @@ def network_decode(value: str):
 		while i < length:   # Iterate length of collection
 			if data_chunks[ind][0] in collection_delims:
 				val = network_decode('\x10'.join(data_chunks[ind:]))
-				ind += len(val)
+				if type(val) != dict:
+					ind += len(val)
+				else:
+					ind += len(val) * 2
 			else:
 				val = network_decode(data_chunks[ind])
 				ind += 1
@@ -142,7 +145,9 @@ if __name__ == '__main__':
 	 {1:2, 'hi': 'bye', 1:'hi', 2:'bye'},
 	 [['more', ['nested']], ['lists'], 'because', 'tests'],
 	 {('well', 'this'): 'is awkward', 'because': ['i', 'said', 'so']},
-	 {'a', 'b', 'c', 1, 2, 3}]
+	 {'a', 'b', 'c', 1, 2, 3},
+	 [{'exception': 'Getting data from server failed'}, {'exception': 'Getting data from server failed'},
+	  {'exception': 'Getting data from server failed'}, {'exception': 'Getting data from server failed'}]]
 	for test in tests:
 		encoded = network_encode(test)
 		decoded = network_decode(encoded.decode())
