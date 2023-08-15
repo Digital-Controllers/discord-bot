@@ -1,3 +1,8 @@
+from pathlib import Path
+from sys import path
+
+path.append(str(Path(__file__).parent.parent.parent))
+
 from tb_db import sql_func, sql_op
 
 
