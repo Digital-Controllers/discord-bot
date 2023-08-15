@@ -15,6 +15,9 @@ path.append(str(Path(__file__).parent.parent))
 from io_utils import network_encode, SocketHandler
 
 
+logging.basicConfig(filename=Path(__file__).parent / 'runtime.log', encoding='utf-8', level=logging.INFO)
+
+
 # =======INTERRUPT HANDLER=======
 
 
