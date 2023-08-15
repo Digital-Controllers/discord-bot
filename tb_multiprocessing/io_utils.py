@@ -10,7 +10,7 @@ class SocketHandler:
 		if recieving:
 			self.monitor = DefaultSelector()
 			self.monitor.register(conn, EVENT_READ)
-			self.previous = ''
+			self.previous = '\x074\x11\x062\x11\x01exception\x10\x01Getting data from server failed\x10\x062\x11\x01exception\x10\x01Getting data from server failed\x10\x062\x11\x01exception\x10\x01Getting data from server failed\x10\x062\x11\x01exception\x10\x01Getting data from server failed\x00'
 
 	def write(self, msg: bytes):
 		if self.recieving:
@@ -93,6 +93,19 @@ def network_encode(to_encode):
 
 def network_decode(value: str):
 	"""Recursively decodes strings to original data"""
+	def internal_len(to_len) -> int:
+		"""Recursively gets total length of collection including sub-collections"""
+		if type(to_len) not in {dict, list, set, tuple}:
+			return 1
+
+		if type(to_len) == dict:
+			to_len = to_len.items()
+
+		counter = 0
+		for i in to_len:
+			counter += internal_len(i)
+		return counter
+
 	value_type = value_keywords[value[0]]
 
 	if value_type in {list, tuple, set, dict}:
@@ -104,10 +117,7 @@ def network_decode(value: str):
 		while i < length:   # Iterate length of collection
 			if data_chunks[ind][0] in collection_delims:
 				val = network_decode('\x10'.join(data_chunks[ind:]))
-				if type(val) != dict:
-					ind += len(val)
-				else:
-					ind += len(val) * 2
+				ind += internal_len(val)
 			else:
 				val = network_decode(data_chunks[ind])
 				ind += 1
@@ -147,6 +157,8 @@ if __name__ == '__main__':
 	 {('well', 'this'): 'is awkward', 'because': ['i', 'said', 'so']},
 	 {'a', 'b', 'c', 1, 2, 3},
 	 [{'exception': 'Getting data from server failed'}, {'exception': 'Getting data from server failed'},
+	  {'exception': 'Getting data from server failed'}, {'exception': 'Getting data from server failed'}],
+	 [{'exception': 'Getting data from server failed', 'xception': ('Getting data from server failed','test')},
 	  {'exception': 'Getting data from server failed'}, {'exception': 'Getting data from server failed'}]]
 	for test in tests:
 		encoded = network_encode(test)

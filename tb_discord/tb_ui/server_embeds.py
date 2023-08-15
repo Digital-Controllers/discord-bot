@@ -81,7 +81,6 @@ class ServersEmbed(Embed):
 				logging.warning('ServersEmbed update timer took %s seconds', delta)
 			update_data = (('gaw', server_data.gaw), ('pgaw', server_data.pgaw),
 			               ('lkeu', server_data.lkeu), ('lkna', server_data.lkna))
-			print(update_data)
 			for i in range(len(update_data)):
 				server_name, server_info = update_data[i]
 				message = ', '.join([value for key, value in server_info.items() if key not in {'players'}])
