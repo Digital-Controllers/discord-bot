@@ -7,8 +7,7 @@ from PIL import Image, ImageDraw, ImageFont
 from sys import argv
 from tb_db import sql_op
 from tb_discord import bot
-from tb_discord.data_structures import RolesMessage, role_messages as active_role_messages
-from tb_discord.tb_ui import RolesView
+from tb_discord.tb_ui import RolesMessage, ServersEmbed
 import logging
 import random
 import re
@@ -16,6 +15,8 @@ import re
 __all__ = []
 
 started = False
+# message_types returns handler function to initialize persistent message, args structured as (message, channel, data)
+message_types = [ServersEmbed.find, RolesMessage.find]
 JETS = ["F16", "F18", "F15", "F35", "F22", "A10", "F14", "MIR2"]
 HOLDING_POINTS = ["A", "B", "C", "D"]
 AERODROMES = ["UG5X", "UG24", "UGKO", "UGKS", "URKA", "URKN", "URMM", "URSS"]
@@ -27,27 +28,25 @@ DEPARTURES = ["GAM1D", "PAL1D", "ARN1D", "TIB1D", "SOR1D", "RUD1D", "AGI1D", "DI
 async def on_ready():
     print(f"{bot.user} has connected to Discord!")
 
-    global started
-    if not started:
-        started = True
-        if "-c" not in argv:
-            role_messages = sql_op("SELECT * FROM role_messages", (), fetch_all=True)
-            for view_data in role_messages:
-                try:
-                    channel = bot.get_channel(int(view_data[1]))
-                    message = await channel.fetch_message(int(view_data[0]))
-                except NotFound:
-                    sql_op("DELETE FROM role_messages WHERE message_id = %s", (view_data[0],))
-                    logging.warning(f"Message with ID {view_data[0]} in channel {view_data[1]} could not be found.")
-                    continue
+	global started
+	if not started:
+		started = True
+		if '-c' not in argv:
+			role_messages = sql_op('SELECT * FROM persistent_messages', (), fetch_all=True)
+			for view_data in role_messages:
+				try:
+					channel = bot.get_channel(int(view_data[1]))
+					assert channel is not None
+					message = await channel.fetch_message(int(view_data[0]))
+				except NotFound:
+					sql_op('DELETE FROM persistent_messages WHERE message_id = %s', (view_data[0],))
+					logging.warning(f'Message of type {view_data[2]} with ID {view_data[0]} in channel {view_data[1]} could not be found.')
+					continue
+				except AssertionError:
+					sql_op('DELETE FROM persistent_messages WHERE message_id = %s', (view_data[0],))
+					continue
 
-                # Could do this in a list comprehension, but it"d be extremely unreadable
-                roles = []
-                for role_id in [int("".join(i)) for i in zip(*[iter(view_data[2])] * 20)]:
-                    roles.append(channel.guild.get_role(role_id))
-
-                message_data = RolesMessage(await message.edit(view=RolesView(roles)), roles)
-                active_role_messages.append(message_data)
+				await message_types[view_data[2]](message, channel, view_data[3])
 
 
 @bot.event

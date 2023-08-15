@@ -1,3 +1,8 @@
+from pathlib import Path
+from sys import path
+
+path.append(str(Path(__file__).parent.parent.parent))
+
 from tb_db import sql_func, sql_op
 
 __all__ = ["check_usernames", "log_user"]
@@ -43,9 +48,3 @@ def log_user(db_conn, cursor, username: str, state: bool):
 
 
 comms_dict = {(0,): "Opted out", (1,): "Opted in", None: "Unknown"}
-
-# Set up table if it doesn't exist
-sql_op("CREATE TABLE IF NOT EXISTS user_comms("
-	   "username VARCHAR(25) NOT NULL,"
-	   "comms TINYINT(1) NOT NULL,"
-	   "PRIMARY KEY (username));", ())

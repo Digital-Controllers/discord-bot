@@ -43,7 +43,6 @@ class _ConfigReader:
         load_dotenv(config_parent / ".env")
 
         self.owner_ids: list = cfg["OWNER_IDS"]
-        self.dc_embed_channel_id: int = cfg["DCEMBED_CHANNEL_ID"]
         self.TOKEN: str = getenv("TOKEN")
         self.DBINFO: dict[str: str] = {"host": getenv("DBIP"), "user": getenv("DBUN"),
                                        "password": getenv("DBPW"), "database": getenv("DBNAME")}
