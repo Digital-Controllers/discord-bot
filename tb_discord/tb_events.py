@@ -78,5 +78,5 @@ async def on_member_join(member):
     d.text((646, 57), "M/" + strip_text["aircraft"], font=font, fill=(0, 0, 0), anchor="lm")
     strip.save(fp="strip.png")
     await bot.get_channel(1099805424934469652).send(f"Welcome to Digital Controllers, "
-                                                    f"{member.mention}!", file=File("strip.png"), allowedmentions=AllowedMentions.none())
+                                                    f"{member.mention}!", file=File("strip.png"))
     remove("strip.png")
