@@ -1,6 +1,5 @@
 from pathlib import Path
-from signal import CTRL_C_EVENT
-from sys import executable
+from sys import executable, platform
 import socket
 import subprocess
 
@@ -17,7 +16,15 @@ process = subprocess.Popen([executable, Path(__file__).parent / "main.py"])
 
 conn, addr = sock.accept()
 
+if platform == 'win32':
+    from signal import CTRL_C_EVENT
 
-def stop():
-    process.send_signal(CTRL_C_EVENT)
-    sock.close()
+    def stop():
+        process.send_signal(CTRL_C_EVENT)
+        sock.close()
+else:
+    from signal import SIGINT
+
+    def stop():
+        process.send_signal(SIGINT)
+        sock.close()
