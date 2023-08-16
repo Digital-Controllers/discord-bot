@@ -3,6 +3,7 @@ from json import loads
 from re import match
 from typing import Literal
 from urllib.request import urlopen
+import logging
 
 
 def get_hoggit(server: Literal["gaw", "pgaw"]) -> dict:
@@ -13,6 +14,7 @@ def get_hoggit(server: Literal["gaw", "pgaw"]) -> dict:
     # Check data to be processed for unexpected types
     if (type(data_dict["objects"]), type(data_dict["players"]), type(data_dict["uptime"])) != (list, int, float) \
             or data_dict["updateTime"] == "":
+        logging.warning('Unexpected data types in hoggit server information | %s' % data_dict)
         return {"exception": "Unexpected data types in server information"}
 
     seconds_to_restart = timedelta(seconds=14400 - data_dict["uptime"])
