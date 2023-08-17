@@ -10,7 +10,7 @@ class SocketHandler:
 		if recieving:
 			self.monitor = DefaultSelector()
 			self.monitor.register(conn, EVENT_READ)
-			self.previous = '\x074\x11\x062\x11\x01exception\x10\x01Getting data from server failed\x10\x062\x11\x01exception\x10\x01Getting data from server failed\x10\x062\x11\x01exception\x10\x01Getting data from server failed\x10\x062\x11\x01exception\x10\x01Getting data from server failed\x00'
+			self.previous = '\x074\x11\x062\x11\x01exception\x10\x01Update has not yet run\x10\x062\x11\x01exception\x10\x01Update has not yet run\x10\x062\x11\x01exception\x10\x01Update has not yet run\x10\x062\x11\x01exception\x10\x01Update has not yet run\x00'
 
 	def write(self, msg: bytes):
 		if self.recieving:

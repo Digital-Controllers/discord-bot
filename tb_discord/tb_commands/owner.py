@@ -36,7 +36,7 @@ async def new_servers_embed(interaction: Interaction, channel: TextChannel):
     if active := ServersEmbed.active_embed:
         try:
             await active.message.channel.fetch_message(active.message.id)   # Checks if listed embed still exists
-        except NotFound:
+        except NotFound | app_commands.errors.CommandInvokeError:
             await ServersEmbed.active_embed.delete()
             await ServersEmbed.create(channel)
             await interaction.followup.send("New embed created.", ephemeral=True)

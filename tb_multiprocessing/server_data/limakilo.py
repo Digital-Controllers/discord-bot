@@ -15,7 +15,7 @@ def get_lk(server: Literal["eu", "na"]) -> dict:
 		return {"exception": "Server offline"}
 
 	seconds_to_restart = timedelta(seconds=int(data_dict["restartPeriod"]) - int(data_dict["modelTime"]))
-	restart_time = dt((datetime.fromisoformat(data_dict['date']) + seconds_to_restart), style="R")
+	restart_time = dt((datetime.fromisoformat(data_dict['date'][:-1]) + seconds_to_restart), style="R")
 	return {"player_count": f"{int(data_dict['players']['current']) - 1} player(s) online",
 			"players": [i["name"] for i in data_dict["players"]['list']],
 			"restart": f"restart {restart_time}"}

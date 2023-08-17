@@ -5,7 +5,7 @@ from limakilo import get_lk
 from pathlib import Path
 from signal import signal, SIGINT
 from sys import path
-from time import sleep, time
+from time import gmtime, sleep, time
 import logging
 import socket
 
@@ -57,7 +57,7 @@ while True:
 				case 'lkna':
 					data[ind] = check_usernames(get_lk('na'))
 		except Exception as err:
-			logging.error('Exception in getting data from %s\n%s', server, err)
+			logging.error('%s | Exception in getting data from %s\n%s', gmtime(time()), server, err)
 	connection.write(network_encode(data))
 	sleep(120 - time() + start)
 
