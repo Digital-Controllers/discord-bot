@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from discord import app_commands, Message, Interaction, TextChannel, utils
+from discord.errors import NotFound
 from tb_discord.tb_ui import RolesMessage, RoleButtonEmbed, RoleChoiceView, RoleDeleteView
 
 
@@ -10,8 +11,12 @@ __all__ = ["command_list"]
 async def create_role_buttons(interaction: Interaction, channel: TextChannel, message_id: str = None):
 	# Get original message
 	if message_id:
-		message_id = int(message_id)
-		message: Message = await channel.fetch_message(message_id)
+		try:
+			message_id = int(message_id)
+			message: Message = await channel.fetch_message(message_id)
+		except NotFound:
+			await interaction.response.send_message(f"Your message in {channel.name} could not be found")
+			return
 	else:
 		message = await utils.get(
 			channel.history(limit=50, after=datetime.now() - timedelta(hours=1), oldest_first=False), author=interaction.user)
