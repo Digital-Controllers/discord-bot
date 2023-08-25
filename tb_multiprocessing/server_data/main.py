@@ -40,11 +40,10 @@ connection = SocketHandler(sock, recieving=False)
 
 # =======MAIN LOOP=======
 
-
+data = [{'exception': 'Getting data from server failed'}, {'exception': 'Getting data from server failed'},
+		{'exception': 'Getting data from server failed'}, {'exception': 'Getting data from server failed'}]
 while True:
 	start = time()
-	data = [{'exception': 'Getting data from server failed'}, {'exception': 'Getting data from server failed'},
-			{'exception': 'Getting data from server failed'}, {'exception': 'Getting data from server failed'}]
 	for server, ind in (('gaw', 0), ('pgaw', 1), ('lkeu', 2), ('lkna', 3)):
 		try:
 			match server:
