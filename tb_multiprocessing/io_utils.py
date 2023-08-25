@@ -1,6 +1,7 @@
 """Provides utility functions and classes for communication between processes"""
 from copy import deepcopy
 from selectors import DefaultSelector, EVENT_READ
+import logging
 
 
 class SocketHandler:
@@ -95,7 +96,7 @@ def network_decode(value: str):
 	"""Recursively decodes strings to original data"""
 	def internal_len(to_len) -> int:
 		"""Recursively gets total length of collection including sub-collections"""
-		if type(to_len) not in {dict, list, set, tuple}:
+		if type(to_len) not in {dict, list, set, tuple} or len(to_len) == 0:
 			return 1
 
 		if type(to_len) == dict:
@@ -125,7 +126,10 @@ def network_decode(value: str):
 			out.append(val)
 
 		if value_type == dict:
-			return {out[i]: out[i+1] for i in range(0, len(out), 2)}
+			try:
+				return {out[i]: out[i+1] for i in range(0, len(out), 2)}
+			except TypeError:
+				logging.warning('Error converting to dict, value %s | %s', out, value)
 		return value_type(out)
 
 	elif value_type == str:
@@ -156,6 +160,7 @@ if __name__ == '__main__':
 	 [['more', ['nested']], ['lists'], 'because', 'tests'],
 	 {('well', 'this'): 'is awkward', 'because': ['i', 'said', 'so']},
 	 {'a', 'b', 'c', 1, 2, 3},
+	 {'a':'', 'b':['a', '1']},
 	 [{'exception': 'Getting data from server failed'}, {'exception': 'Getting data from server failed'},
 	  {'exception': 'Getting data from server failed'}, {'exception': 'Getting data from server failed'}],
 	 [{'exception': 'Getting data from server failed', 'xception': ('Getting data from server failed','test')},
