@@ -6,8 +6,8 @@ import pymysql
 
 def connect_to_db() -> pymysql.Connection:
 	"""Connects to database with info in configs and returns connection"""
-	return pymysql.connect(host=configs.DBINFO['host'], user=configs.DBINFO['user'],
-						   password=configs.DBINFO['password'], database=configs.DBINFO['database'])
+	return pymysql.connect(host=configs.DBINFO["host"], user=configs.DBINFO["user"],
+						   password=configs.DBINFO["password"], database=configs.DBINFO["database"])
 
 
 def sql_func(func: Callable) -> Callable:
@@ -32,7 +32,7 @@ def sql_op(sql_cmd: list[str] | str, args: list[tuple] | tuple,
 		out | List of tuples or tuple (depending on type of sql_cmd) of value(s) returned from database
 	"""
 
-	assert (type(sql_cmd), type(args)) in {(list, list), (str, tuple)}, 'sql_op arguments of wrong types'
+	assert (type(sql_cmd), type(args)) in {(list, list), (str, tuple)}, "sql_op arguments of wrong types"
 
 	with connect_to_db() as conn:
 		with conn.cursor() as cursor:
@@ -54,7 +54,7 @@ def sql_op(sql_cmd: list[str] | str, args: list[tuple] | tuple,
 	return out
 
 
-if '-r' in argv:
+if "-r" in argv:
 	sql_op(["CREATE OR REPLACE TABLE user_comms("
 				"username VARCHAR(25) PRIMARY KEY,"
 				"comms TINYINT(1) NOT NULL);",
@@ -63,7 +63,7 @@ if '-r' in argv:
 	            "channel_id BIGINT UNSIGNED NOT NULL,"
 	            "type TINYINT NOT NULL,"
 	            "data TEXT);"], [(), ()])
-	print(sql_op(['SELECT * FROM user_comms;', 'SELECT * FROM persistent_messages;'], [(), ()], fetch_all=True))
+	print(sql_op(["SELECT * FROM user_comms;", "SELECT * FROM persistent_messages;"], [(), ()], fetch_all=True))
 else:
 	sql_op(["CREATE TABLE IF NOT EXISTS user_comms("
 				"username VARCHAR(25) PRIMARY KEY,"

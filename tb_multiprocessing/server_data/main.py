@@ -1,4 +1,4 @@
-"""Creates multiprocessing processes for server_data with minimal dependancies"""
+"""Creates multiprocessing processes for server_data with minimal dependencies"""
 from comm_checker import check_usernames
 from hoggit import get_hoggit
 from limakilo import get_lk
@@ -9,20 +9,20 @@ from time import gmtime, sleep, time
 import logging
 import socket
 
-# Path hack, but I'd otherwise have to make this subprocess above the main in the directory structure.
+# Path hack, but I"d otherwise have to make this subprocess above the main in the directory structure.
 path.append(str(Path(__file__).parent.parent))
 
 from io_utils import network_encode, SocketHandler
 
 
-logging.basicConfig(filename=Path(__file__).parent / 'runtime.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(filename=Path(__file__).parent / "runtime.log", encoding="utf-8", level=logging.INFO)
 
 
 # =======INTERRUPT HANDLER=======
 
 
 def interrupt_handler(signum, frame):
-	print('Closing subprocess')
+	print("Closing subprocess")
 	sock.close()
 	exit()
 
@@ -40,23 +40,23 @@ connection = SocketHandler(sock, recieving=False)
 
 # =======MAIN LOOP=======
 
-data = [{'exception': 'Getting data from server failed'}, {'exception': 'Getting data from server failed'},
-		{'exception': 'Getting data from server failed'}, {'exception': 'Getting data from server failed'}]
+data = [{"exception": "Getting data from server failed"}, {"exception": "Getting data from server failed"},
+		{"exception": "Getting data from server failed"}, {"exception": "Getting data from server failed"}]
 while True:
 	start = time()
-	for server, ind in (('gaw', 0), ('pgaw', 1), ('lkeu', 2), ('lkna', 3)):
+	for server, ind in (("gaw", 0), ("pgaw", 1), ("lkeu", 2), ("lkna", 3)):
 		try:
 			match server:
-				case 'gaw':
-					data[ind] = check_usernames(get_hoggit('gaw'))
-				case 'pgaw':
-					data[ind] = check_usernames(get_hoggit('pgaw'))
-				case 'lkeu':
-					data[ind] = check_usernames(get_lk('eu'))
-				case 'lkna':
-					data[ind] = check_usernames(get_lk('na'))
+				case "gaw":
+					data[ind] = check_usernames(get_hoggit("gaw"))
+				case "pgaw":
+					data[ind] = check_usernames(get_hoggit("pgaw"))
+				case "lkeu":
+					data[ind] = check_usernames(get_lk("eu"))
+				case "lkna":
+					data[ind] = check_usernames(get_lk("na"))
 		except Exception as err:
-			logging.error('%s | Exception in getting data from %s\n%s', gmtime(time()), server, err)
+			logging.error("%s | Exception in getting data from %s\n%s", gmtime(time()), server, err)
 	connection.write(network_encode(data))
 	sleep(120 - time() + start)
 
