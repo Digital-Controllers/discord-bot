@@ -4,7 +4,7 @@ from os import getenv
 from pathlib import Path
 import json
 
-__all__ = ['configs']
+__all__ = ["configs"]
 
 
 # Raised if something is wrong when we load the config file.
@@ -48,5 +48,5 @@ class _ConfigReader:
                                        "password": getenv("DBPW"), "database": getenv("DBNAME")}
 
 
-if __name__ != '__main__':
+if __name__ != "__main__":
     configs = _ConfigReader()

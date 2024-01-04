@@ -31,7 +31,7 @@ async def on_ready():
     global started
     if not started:
         started = True
-        if '-c' not in argv:
+        if "-c" not in argv:
             role_messages = sql_op('SELECT * FROM persistent_messages', (), fetch_all=True)
             for view_data in role_messages:
                 try:
@@ -40,7 +40,7 @@ async def on_ready():
                     message = await channel.fetch_message(int(view_data[0]))
                 except NotFound:
                     sql_op('DELETE FROM persistent_messages WHERE message_id = %s', (view_data[0],))
-                    logging.warning(f'Message of type {view_data[2]} with ID {view_data[0]} in channel {view_data[1]} could not be found.')
+                    logging.warning(f"Message of type {view_data[2]} with ID {view_data[0]} in channel {view_data[1]} could not be found.")
                     continue
                 except AssertionError:
                     sql_op('DELETE FROM persistent_messages WHERE message_id = %s', (view_data[0],))

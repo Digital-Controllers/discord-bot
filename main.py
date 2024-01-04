@@ -10,7 +10,6 @@ from tb_multiprocessing import stop_list
 
 # =======INTERRUPT HANDLING=======
 
-
 def clean_close(signum, frame):
 	"""Prevents leaving hanging TCP sockets on localhost"""
 	for func in stop_list:
