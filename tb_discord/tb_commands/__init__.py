@@ -3,9 +3,11 @@ import tb_discord.tb_commands.info
 import tb_discord.tb_commands.mission_planning
 import tb_discord.tb_commands.owner
 import tb_discord.tb_commands.roles
+import tb_discord.tb_commands.lesson_tracking
 
 
 __all__ = ["command_list"]
 
 
-command_list = info.command_list + mission_planning.command_list + owner.command_list + roles.command_list
+command_list = (info.command_list + mission_planning.command_list + owner.command_list + roles.command_list +
+                lesson_tracking.command_list)

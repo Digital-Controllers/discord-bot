@@ -58,19 +58,37 @@ if "-r" in argv:
 	sql_op(["CREATE OR REPLACE TABLE user_comms("
 				"username VARCHAR(25) PRIMARY KEY,"
 				"comms TINYINT(1) NOT NULL);",
-	        "CREATE OR REPLACE TABLE persistent_messages("
-	            "message_id BIGINT UNSIGNED PRIMARY KEY,"
-	            "channel_id BIGINT UNSIGNED NOT NULL,"
-	            "type TINYINT NOT NULL,"
-	            "data TEXT);"], [(), ()])
-	print(sql_op(["SELECT * FROM user_comms;", "SELECT * FROM persistent_messages;"], [(), ()], fetch_all=True))
+			"CREATE OR REPLACE TABLE persistent_messages("
+				"message_id BIGINT UNSIGNED PRIMARY KEY,"
+				"channel_id BIGINT UNSIGNED NOT NULL,"
+				"type TINYINT NOT NULL,"
+				"data TEXT);",
+			"CREATE OR REPLACE TABLE students("
+				"uid BIGINT UNSIGNED PRIMARY KEY,"
+				"requests BLOB DEFAULT '',"
+				"attended_sessions BLOB DEFAULT '',"
+				"completed_sessions BLOB DEFAULT '');",
+			"CREATE OR REPLACE TABLE server_data("
+				"id TINYINT UNSIGNED PRIMARY KEY,"
+				"data BLOB DEFAULT '');",
+			"INSERT INTO server_data VALUES (0, %s);"], [(), (), (), (), (int(0).to_bytes(2, "big") * 256)])
+	print(*sql_op(["SELECT * FROM user_comms;", "SELECT * FROM persistent_messages;", "SELECT * FROM students",
+				  "SELECT * FROM server_data"], [(), (), (), ()], fetch_all=True), sep="\n")
 else:
 	sql_op(["CREATE TABLE IF NOT EXISTS user_comms("
 				"username VARCHAR(25) PRIMARY KEY,"
 				"comms TINYINT(1) NOT NULL);",
 			"CREATE TABLE IF NOT EXISTS persistent_messages("
-	            "message_id BIGINT UNSIGNED PRIMARY KEY,"
-	            "channel_id BIGINT UNSIGNED NOT NULL,"
-	            "type TINYINT NOT NULL,"
-	            "data TEXT);"], [(), ()])
+				"message_id BIGINT UNSIGNED PRIMARY KEY,"
+				"channel_id BIGINT UNSIGNED NOT NULL,"
+				"type TINYINT NOT NULL,"
+				"data TEXT);",
+			"CREATE TABLE IF NOT EXISTS students("
+				"uid BIGINT UNSIGNED PRIMARY KEY,"
+				"requests BLOB DEFAULT '',"
+				"attended_sessions BLOB DEFAULT '',"
+				"completed_sessions BLOB DEFAULT '');",
+			"CREATE TABLE IF NOT EXISTS server_data("
+				"id TINYINT UNSIGNED PRIMARY KEY,"
+				"data BLOB DEFAULT '');"], [(), (), (), ()])
 
