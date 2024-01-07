@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from discord import app_commands, Message, Interaction, TextChannel, utils
 from discord.errors import NotFound
+from tb_discord.tb_commands.filters import check_is_owner
 from tb_discord.tb_ui import RolesMessage, RoleButtonEmbed, RoleChoiceView, RoleDeleteView
 
 
@@ -8,6 +9,7 @@ __all__ = ["command_list"]
 
 
 @app_commands.command()
+@check_is_owner()
 async def create_role_buttons(interaction: Interaction, channel: TextChannel, message_id: str = None):
 	# Get original message
 	if message_id:
@@ -36,12 +38,14 @@ async def create_role_buttons(interaction: Interaction, channel: TextChannel, me
 
 
 @app_commands.command()
+@check_is_owner()
 async def list_role_buttons(interaction: Interaction):
 	guild_messages = tuple(filter(lambda x: x.message.guild.id == interaction.guild.id, RolesMessage.role_messages))
 	await interaction.response.send_message(embed=RoleButtonEmbed(guild_messages))
 
 
 @app_commands.command()
+@check_is_owner()
 async def delete_role_buttons(interaction: Interaction):
 	guild_messages = tuple(filter(lambda x: x.message.guild.id == interaction.guild.id, RolesMessage.role_messages))
 	embed = RoleButtonEmbed(guild_messages)

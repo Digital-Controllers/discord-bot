@@ -1,6 +1,8 @@
 """Towerbot commands dealing with info from external sources"""
-from discord import app_commands, Interaction
-from tb_discord.tb_ui import PlayersEmbed
+from discord import app_commands, Interaction, TextChannel
+from discord.errors import NotFound
+from tb_discord.tb_commands.filters import check_is_owner
+from tb_discord.tb_ui import PlayersEmbed, ServersEmbed
 from urllib.request import urlopen
 import server_data
 
@@ -68,4 +70,38 @@ async def metar(interaction: Interaction, airport: str, decode: bool = False):
             await interaction.response.send_message("Failed to fetch decoded METAR.")
 
 
-command_list = [info, metar]
+@app_commands.command()
+@check_is_owner()
+async def update_embed(interaction: Interaction):
+    try:
+        assert (active := ServersEmbed.active_embed)    # Checks if there is active embed
+        await active.message.channel.fetch_message(active.message.id)   # Check if listed embed actually exists
+    except AssertionError:
+        await interaction.response.send_message("Embed could not be found.", ephemeral=True)
+    except NotFound:
+        await ServersEmbed.active_embed.delete()
+        await interaction.response.send_message("Embed could not be found.", ephemeral=True)
+    else:
+        await interaction.response.send_message("Embed update sequence has begun.", ephemeral=True)
+        await active.update_embed()
+
+
+@app_commands.command()
+@check_is_owner()
+async def new_servers_embed(interaction: Interaction, channel: TextChannel):
+    await interaction.response.defer(thinking=True)
+    if active := ServersEmbed.active_embed:
+        try:
+            await active.message.channel.fetch_message(active.message.id)   # Checks if listed embed still exists
+        except NotFound | app_commands.errors.CommandInvokeError:
+            await ServersEmbed.active_embed.delete()
+            await ServersEmbed.create(channel)
+            await interaction.followup.send("New embed created.", ephemeral=True)
+        else:
+            await interaction.followup.send('There is already an active embed', ephemeral=True)
+    else:
+        await ServersEmbed.create(channel)
+        await interaction.followup.send("New embed created.", ephemeral=True)
+
+
+command_list = [info, metar, new_servers_embed, update_embed]
