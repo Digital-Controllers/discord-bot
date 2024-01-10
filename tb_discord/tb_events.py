@@ -1,5 +1,5 @@
 from datetime import datetime
-from discord import File, AllowedMentions
+from discord import File
 from discord.errors import NotFound
 from os import remove
 from pathlib import Path
@@ -7,7 +7,7 @@ from PIL import Image, ImageDraw, ImageFont
 from sys import argv
 from tb_db import sql_op
 from tb_discord import bot
-from tb_discord.tb_ui import RolesMessage, ServersEmbed
+from tb_discord.tb_ui import RolesMessage, ServersEmbed, CohortUI
 import logging
 import random
 import re
@@ -16,7 +16,7 @@ __all__ = []
 
 started = False
 # message_types returns handler function to initialize persistent message, args structured as (message, channel, data)
-message_types = [ServersEmbed.find, RolesMessage.find]
+message_types = [ServersEmbed.find, RolesMessage.find, CohortUI.find]
 JETS = ["F16", "F18", "F15", "F35", "F22", "A10", "F14", "MIR2"]
 HOLDING_POINTS = ["A", "B", "C", "D"]
 AERODROMES = ["UG5X", "UG24", "UGKO", "UGKS", "URKA", "URKN", "URMM", "URSS"]

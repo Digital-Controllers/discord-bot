@@ -8,6 +8,7 @@ intents = Intents.none()
 intents.guilds = True
 intents.members = True
 intents.guild_messages = True
+intents.voice_states = True
 
 bot = Bot(command_prefix="t?", intents=intents)
 
