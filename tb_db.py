@@ -6,8 +6,8 @@ import pymysql
 
 def connect_to_db() -> pymysql.Connection:
 	"""Connects to database with info in configs and returns connection"""
-	return pymysql.connect(host=configs.DBINFO['host'], user=configs.DBINFO['user'],
-						   password=configs.DBINFO['password'], database=configs.DBINFO['database'])
+	return pymysql.connect(host=configs.DBINFO["host"], user=configs.DBINFO["user"],
+						   password=configs.DBINFO["password"], database=configs.DBINFO["database"])
 
 
 def sql_func(func: Callable) -> Callable:
@@ -32,7 +32,7 @@ def sql_op(sql_cmd: list[str] | str, args: list[tuple] | tuple,
 		out | List of tuples or tuple (depending on type of sql_cmd) of value(s) returned from database
 	"""
 
-	assert (type(sql_cmd), type(args)) in {(list, list), (str, tuple)}, 'sql_op arguments of wrong types'
+	assert (type(sql_cmd), type(args)) in {(list, list), (str, tuple)}, "sql_op arguments of wrong types"
 
 	with connect_to_db() as conn:
 		with conn.cursor() as cursor:
@@ -54,25 +54,41 @@ def sql_op(sql_cmd: list[str] | str, args: list[tuple] | tuple,
 	return out
 
 
-if '-r' in argv:
+if "-r" in argv:
 	sql_op(["CREATE OR REPLACE TABLE user_comms("
-				"username VARCHAR(25) NOT NULL,"
-				"comms TINYINT(1) NOT NULL,"
-				"PRIMARY KEY (username));",
-			"CREATE OR REPLACE TABLE role_messages("
-				"message_id BIGINT UNSIGNED NOT NULL,"
+				"username VARCHAR(25) PRIMARY KEY,"
+				"comms TINYINT(1) NOT NULL);",
+			"CREATE OR REPLACE TABLE persistent_messages("
+				"message_id BIGINT UNSIGNED PRIMARY KEY,"
 				"channel_id BIGINT UNSIGNED NOT NULL,"
-				"roles TINYTEXT NOT NULL,"
-				"PRIMARY KEY (message_id));"], [(), ()])
-	print(sql_op(['SELECT * FROM user_comms;', 'SELECT * FROM role_messages;'], [(), ()], fetch_all=True))
+				"type TINYINT NOT NULL,"
+				"data TEXT);",
+			"CREATE OR REPLACE TABLE students("
+				"uid BIGINT UNSIGNED PRIMARY KEY,"
+				"requests BLOB DEFAULT '',"
+				"attended_sessions BLOB DEFAULT '',"
+				"completed_sessions BLOB DEFAULT '');",
+			"CREATE OR REPLACE TABLE server_data("
+				"id TINYINT UNSIGNED PRIMARY KEY,"
+				"data BLOB DEFAULT '');",
+			"INSERT INTO server_data VALUES (0, %s);"], [(), (), (), (), (int(0).to_bytes(2, "big") * 256)])
+	print(*sql_op(["SELECT * FROM user_comms;", "SELECT * FROM persistent_messages;", "SELECT * FROM students",
+				  "SELECT * FROM server_data"], [(), (), (), ()], fetch_all=True), sep="\n")
 else:
 	sql_op(["CREATE TABLE IF NOT EXISTS user_comms("
-				"username VARCHAR(25) NOT NULL,"
-				"comms TINYINT(1) NOT NULL,"
-				"PRIMARY KEY (username));",
-			"CREATE TABLE IF NOT EXISTS role_messages("
-				"message_id BIGINT UNSIGNED NOT NULL,"
+				"username VARCHAR(25) PRIMARY KEY,"
+				"comms TINYINT(1) NOT NULL);",
+			"CREATE TABLE IF NOT EXISTS persistent_messages("
+				"message_id BIGINT UNSIGNED PRIMARY KEY,"
 				"channel_id BIGINT UNSIGNED NOT NULL,"
-				"roles TINYTEXT NOT NULL,"
-				"PRIMARY KEY (message_id));"], [(), ()])
+				"type TINYINT NOT NULL,"
+				"data TEXT);",
+			"CREATE TABLE IF NOT EXISTS students("
+				"uid BIGINT UNSIGNED PRIMARY KEY,"
+				"requests BLOB DEFAULT '',"
+				"attended_sessions BLOB DEFAULT '',"
+				"completed_sessions BLOB DEFAULT '');",
+			"CREATE TABLE IF NOT EXISTS server_data("
+				"id TINYINT UNSIGNED PRIMARY KEY,"
+				"data BLOB DEFAULT '');"], [(), (), (), ()])
 

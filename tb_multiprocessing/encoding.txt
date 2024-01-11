@@ -1,0 +1,20 @@
+This text file describes the encoding schema that is used in io_utils.py
+
+\x00 | End of message marker
+\x01 | Datatype: str
+\x02 | Datatype: int
+\x03 | Datatype: bool, true
+\x04 | Datatype: bool, false
+\x05 | Datatype: float
+\x06 | Datatype: dict
+\x07 | Datatype: list
+\x08 | Datatype: tuple
+\x09 | Reserved: python \t
+\x0a | Datatype: set
+\x0b | Reserved: new datatypes
+\x0c | Reserved: new datatypes
+\x0d | Reserved: new datatypes
+\x0e | Reserved: new datatypes
+\x0f | Reserved: new datatypes
+\x10 | Separation character
+\x11 | End of collection length character
