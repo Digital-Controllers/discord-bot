@@ -1,9 +1,9 @@
 import pymysql
 from configs import configs
-from discord import app_commands, Interaction, VoiceChannel, Member
+from discord import app_commands, Interaction, VoiceChannel
 from presentation_utils import get_ord
 from tb_discord import bot
-from tb_discord.tb_commands.filters import check_is_owner
+from tb_discord.tb_commands.filters import check_is_staff
 from tb_discord.tb_ui.lesson_tracking import CohortUI, Requests
 from tb_db import sql_func, sql_op
 
@@ -75,7 +75,7 @@ async def lesson_requests(inter: Interaction):
 	app_commands.Choice(name="ATSA", value=0),
 	app_commands.Choice(name="TCA", value=1)
 ])
-@check_is_owner()
+@check_is_staff()
 async def create_cohort(inter: Interaction, channel: VoiceChannel, branch: int):
 	members = channel.voice_states.keys()
 	await inter.response.defer(ephemeral=True, thinking=True)

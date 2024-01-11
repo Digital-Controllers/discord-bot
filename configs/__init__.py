@@ -44,6 +44,7 @@ class _ConfigReader:
 
         self.owner_ids: list = cfg["OWNER_IDS"]
         self.cohort_channels: list[int] = cfg["COHORT_CHANNEL_IDS"]
+        self.staff_role_ids = list[int] = cfg["STAFF_ROLE_IDS"]
         self.TOKEN: str = getenv("TOKEN")
         self.DBINFO: dict[str: str] = {"host": getenv("DBIP"), "user": getenv("DBUN"),
                                        "password": getenv("DBPW"), "database": getenv("DBNAME")}

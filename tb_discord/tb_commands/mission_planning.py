@@ -1,5 +1,6 @@
-"""Towerbot commands dealing with mission planning things"""
-from discord import app_commands, Interaction
+"""Towerbot commands dealing with mission and event planning"""
+from discord import app_commands, Interaction, ScheduledEvent
+from tb_discord.tb_commands.filters import check_is_staff
 import server_data
 
 
@@ -22,6 +23,17 @@ async def opt_out(interaction: Interaction, dcs_username: str):
         await interaction.response.send_message(f"You've opted out of Digital Controllers events under the username `{dcs_username}`.")
     else:
         await interaction.response.send_message("DCS Usernames have a length limit of 25 characters, please try again.")
+
+
+@app_commands.command()
+@check_is_staff()
+async def ping_event(inter: Interaction, event: ScheduledEvent):
+    users = []
+    async for user in event.users():
+        users.append(user)
+
+    await inter.response.send_message("<@" + "><@".join([str(user.id) for user in users]) + ">")
+    await inter.message.delete()
 
 
 command_list = [opt_in, opt_out]
