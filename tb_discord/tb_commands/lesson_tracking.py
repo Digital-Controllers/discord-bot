@@ -76,6 +76,36 @@ async def lesson_requests(inter: Interaction):
 	app_commands.Choice(name="TCA", value=1)
 ])
 @check_is_staff()
+async def clear_lesson_request(inter: Interaction, branch: int, lesson_num: int):
+	await inter.response.defer(thinking=True, ephemeral=True)
+
+	index = (branch << 7) + lesson_num
+
+	requests: tuple[tuple[bytes, int]] = sql_op("SELECT requests, uid FROM students", (), fetch_all=True)
+	for request in requests:
+		request[0].replace(index.to_bytes(1, "big", signed=False), b"")
+	update_student_requests(requests)
+
+	counts: bytes = sql_op("SELECT data FROM server_data WHERE id = 0", ())[0]
+	new_counts = counts[:index * 2] + b"\x00\x00" + counts[index * 2 + 2:]
+	sql_op("UPDATE server_data SET data = %s WHERE id = 0", (new_counts,))
+
+	await inter.followup.send("Lessons cleared", ephemeral=True)
+
+
+@sql_func
+def update_student_requests(conn: pymysql.Connection, cursor: pymysql.connections.Cursor, requests: tuple[tuple[bytes, int]]):
+	for student in requests:
+		cursor.execute("UPDATE students SET requests = %s WHERE uid = %s", (student[0], student[1]))
+	conn.commit()
+
+
+@app_commands.command()
+@app_commands.choices(branch=[
+	app_commands.Choice(name="ATSA", value=0),
+	app_commands.Choice(name="TCA", value=1)
+])
+@check_is_staff()
 async def create_cohort(inter: Interaction, channel: VoiceChannel, branch: int):
 	members = channel.voice_states.keys()
 	await inter.response.defer(ephemeral=True, thinking=True)
@@ -130,4 +160,4 @@ def get_cohorts(conn: pymysql.Connection, cursor: pymysql.connections.Cursor, me
 	return out
 
 
-command_list = [create_cohort, lesson_requests, register, request_training]
+command_list = [create_cohort, clear_lesson_request, lesson_requests, register, request_training]

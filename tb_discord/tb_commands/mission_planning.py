@@ -25,15 +25,15 @@ async def opt_out(interaction: Interaction, dcs_username: str):
         await interaction.response.send_message("DCS Usernames have a length limit of 25 characters, please try again.")
 
 
-@app_commands.command()
-@check_is_staff()
-async def ping_event(inter: Interaction, event: ScheduledEvent):
-    users = []
-    async for user in event.users():
-        users.append(user)
-
-    await inter.response.send_message("<@" + "><@".join([str(user.id) for user in users]) + ">")
-    await inter.message.delete()
+# @app_commands.command()
+# @check_is_staff()
+# async def ping_event(inter: Interaction, event: ScheduledEvent):
+#     users = []
+#     async for user in event.users():
+#         users.append(user)
+#
+#     await inter.response.send_message("<@" + "><@".join([str(user.id) for user in users]) + ">")
+#     await inter.message.delete()
 
 
 command_list = [opt_in, opt_out]
