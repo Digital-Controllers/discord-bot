@@ -15,7 +15,8 @@ def sql_func(func: Callable) -> Callable:
 	def wrapper(*args, **kwargs):
 		with connect_to_db() as conn:
 			with conn.cursor() as cursor:
-				func(conn, cursor, *args, **kwargs)
+				return func(conn, cursor, *args, **kwargs)
+
 	return wrapper
 
 
@@ -67,11 +68,15 @@ if "-r" in argv:
 				"uid BIGINT UNSIGNED PRIMARY KEY,"
 				"requests BLOB DEFAULT '',"
 				"attended_sessions BLOB DEFAULT '',"
-				"completed_sessions BLOB DEFAULT '');",
+				"completed_sessions BLOB DEFAULT '',"
+				"cohort INT UNSIGNED DEFAULT 0);",
 			"CREATE OR REPLACE TABLE server_data("
 				"id TINYINT UNSIGNED PRIMARY KEY,"
 				"data BLOB DEFAULT '');",
-			"INSERT INTO server_data VALUES (0, %s);"], [(), (), (), (), (int(0).to_bytes(2, "big") * 256)])
+			"INSERT INTO server_data VALUES (0, %s);",
+			"INSERT INTO server_data VALUES (1, %s);"],
+			[(), (), (), (), (int(0).to_bytes(2, "big") * 256,),
+				(int(1 << 16 + 1).to_bytes(4, "big"),)])
 	print(*sql_op(["SELECT * FROM user_comms;", "SELECT * FROM persistent_messages;", "SELECT * FROM students",
 				  "SELECT * FROM server_data"], [(), (), (), ()], fetch_all=True), sep="\n")
 else:
@@ -87,7 +92,8 @@ else:
 				"uid BIGINT UNSIGNED PRIMARY KEY,"
 				"requests BLOB DEFAULT '',"
 				"attended_sessions BLOB DEFAULT '',"
-				"completed_sessions BLOB DEFAULT '');",
+				"completed_sessions BLOB DEFAULT '',"
+				"cohort INT UNSIGNED DEFAULT 0);",
 			"CREATE TABLE IF NOT EXISTS server_data("
 				"id TINYINT UNSIGNED PRIMARY KEY,"
 				"data BLOB DEFAULT '');"], [(), (), (), ()])
