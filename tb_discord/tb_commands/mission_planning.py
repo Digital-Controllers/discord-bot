@@ -28,9 +28,9 @@ async def opt_out(interaction: Interaction, dcs_username: str):
 @app_commands.command()
 @check_is_staff()
 async def ping_event(inter: Interaction, event_name: str):
-    await inter.response.defer(thinking=True, ephemeral=True)
+    await inter.response.defer(thinking=True)
     events = await inter.guild.fetch_scheduled_events()
-    filter(lambda event: event.name.lower() == event_name.lower(), events)
+    events = list(filter(lambda event: event.name.lower() == event_name.lower(), events))
     if len(events) > 1:
         await inter.followup.send("There is more than one event with that name", ephemeral=True)
     elif len(events) == 0:

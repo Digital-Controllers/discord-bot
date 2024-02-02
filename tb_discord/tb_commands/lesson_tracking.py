@@ -17,8 +17,9 @@ async def register(inter: Interaction):
 		sql_op("INSERT INTO students VALUES (%s, default, default, default, NULL)", (inter.user.id,))
 		await inter.response.send_message("Registered successfully", ephemeral=True)
 	else:
-		await inter.response.send_message("You have already registered with Towerbot. To unregister, please contact a DC Staff member",
-										  ephemeral=True)
+		await inter.response.send_message(
+			"You have already registered with Towerbot. To unregister, please contact a DC Staff member", ephemeral=True
+		)
 
 
 @app_commands.command()
