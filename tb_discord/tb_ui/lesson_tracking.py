@@ -16,9 +16,9 @@ class Requests(Embed):
 
 		if max(atsa_data) != 0:
 			requested_atsa = str(atsa_data.index(max(atsa_data))).zfill(2)
-			self.add_field(name="Most Requested ATSA Lesson:", value=f"ACAD-{requested_atsa}")
+			self.add_field(name="Most Requested ATSA Practical:", value=f"PRAC-{requested_atsa}")
 		else:
-			self.add_field(name="Most Requested ATSA Lesson:", value=f"No requested ATSA lessons")
+			self.add_field(name="Most Requested ATSA Practical:", value=f"No requested ATSA lessons")
 
 		if max(tca_data) != 0:
 			requested_tca = str(tca_data.index(max(tca_data))).zfill(2)
@@ -31,7 +31,7 @@ class Requests(Embed):
 			atsa_max = max(atsa_data)
 			tca_max = max(tca_data)
 			if atsa_max > tca_max:
-				top_requested.append(f"ACAD-{str(atsa_data.index(atsa_max)).zfill(2)}")
+				top_requested.append(f"PRAC-{str(atsa_data.index(atsa_max)).zfill(2)}")
 				atsa_data[atsa_data.index(atsa_max)] = 0
 			else:
 				if tca_max == 0:

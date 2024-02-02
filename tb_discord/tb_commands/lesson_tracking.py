@@ -72,8 +72,8 @@ async def lesson_requests(inter: Interaction):
 
 @app_commands.command()
 @app_commands.choices(branch=[
-	app_commands.Choice(name="ATSA", value=0),
-	app_commands.Choice(name="TCA", value=1)
+	app_commands.Choice(name="ATSA PRAC", value=0),
+	app_commands.Choice(name="TACAD", value=1)
 ])
 @check_is_staff()
 async def clear_lesson_request(inter: Interaction, branch: int, lesson_num: int):
